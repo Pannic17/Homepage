@@ -4,7 +4,6 @@
 
 
   <p>
-    Email:
     <a href="mailto:pannic1984@outlook.com">pannic1984@outlook.com</a>
   </p>
 

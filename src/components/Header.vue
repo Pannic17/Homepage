@@ -1,7 +1,11 @@
 <template>
-  <img alt="Vue logo" src="src/assets/logo.png" @click="$router.push({name: 'Home'})"/>
-  <h1>PanNic</h1>
-  <button type="button" @click="switchLanguage">{{ $t("home.language") }}</button>
+  <div class="heading">
+    <img class="logo" alt="Cat Logo" src="../assets/image/logo_cat.png" @click="$router.push({name: 'Home'})"/>
+    <a class="text" >PanNic</a>
+  </div>
+
+
+
 </template>
 
 <script setup lang="ts">
@@ -25,5 +29,19 @@ export default {
 </script>
 
 <style scoped>
+.heading{
+  height: 40vmin;
+  width: 30vmin;
+}
 
+.logo{
+  width: 30vmin;
+}
+.text {
+  font-family: "Bauhaus 93", serif;
+  font-size: 8vmin;
+  line-height: 108%;
+  color: #2c3e50;
+  margin-left: 3vmin;
+}
 </style>

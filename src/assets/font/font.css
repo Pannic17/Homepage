@@ -4,3 +4,10 @@
     font-weight: normal;
     font-style: normal;
 }
+
+@font-face {
+    font-family: "Bauhaus 93";
+    src: url("BAUHS93.ttf");
+    font-weight: normal;
+    font-style: auto;
+}

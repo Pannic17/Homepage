@@ -1,22 +1,32 @@
 <template>
 
   <Header></Header>
-  <p>
-    {{ $t("home.intro") }}
-  </p>
 
-  <p>
-    <a href="https://github.com/Pannic17">Github</a>
-  </p>
+  <div class="menu"><Menu></Menu></div>
 
-  <button type="button" @click="count++">count is: {{ count }}</button>
-  <p>
-    Build on Vue.js
-  </p>
 
-  <Menu></Menu>
+
+  <div class="c_social">
+    <a href="mailto:pannic1984@outlook.com"><img class="social" src="../assets/image/icon_email.png" alt="Email"></a>
+    <a href="https://github.com/Pannic17"><img class="social" src="../assets/image/icon_github.png"  alt="Github"/></a>
+    <a href="https://space.bilibili.com/26919749"><img class="social" src="../assets/image/icon_bili.png" alt="Bilibili"></a>
+    <a href="https://www.instagram.com/pannic17/"><img class="social" src="../assets/image/icon_ins.png" alt="Instagram"></a>
+  </div>
+
+
 
 </template>
+
+<style>
+.c_social{
+  background-color: white;
+}
+.social{
+  height: 5vw;
+  width: 5vw;
+  margin: 1vw;
+}
+</style>
 
 <script setup lang="ts">
 import {ref} from 'vue'
@@ -30,3 +40,14 @@ export default {
   name: "Home",
 }
 </script>
+
+<style scoped>
+.menu{
+  margin-left: 3vmin;
+}
+
+.c_social{
+  float: right;
+  margin-right: 3vmin;
+}
+</style>

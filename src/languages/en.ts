@@ -1,7 +1,6 @@
 export default {
     "home":{
         "intro": "Works of PanNic",
-        "language": "中文",
     },
     "menu":{
         "about": "About",
@@ -9,6 +8,7 @@ export default {
         "project": "Project",
         "artwork": "Artwork",
         "home": "Home",
+        "language": "中文",
     },
     "about":{
         "about": "About PanNic",

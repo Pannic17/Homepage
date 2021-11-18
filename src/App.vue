@@ -9,11 +9,10 @@
 @import "assets/font/font.css";
 
 #app {
-  font-family: "JetBrains Mono", sans-serif;
+  font-family: "JetBrains Mono", "Bauhaus 93", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 3vmin;
 }
 </style>
