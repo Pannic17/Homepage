@@ -36,6 +36,6 @@ export default {
         "mg": "MG动画",
         "3d": "3D建模",
         "pp": "后期剪辑",
-        "commercial": "商业项目",
+        "cc": "商业项目",
     }
 }
