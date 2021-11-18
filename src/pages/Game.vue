@@ -3,7 +3,7 @@
   <Menu></Menu>
 
   <div>
-    <h1>Demo</h1>
+    <h1>{{ $t("game.demo") }}</h1>
 
     <div>
       <h2>{{ $t("game.catTitle") }}</h2>
@@ -24,7 +24,7 @@
   <br>
 
   <div>
-    <h1>Concept</h1>
+    <h1>{{ $t("game.concept") }}</h1>
 
     <div>
       <h2>Cat Caf&#233</h2>

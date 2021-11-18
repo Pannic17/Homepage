@@ -18,16 +18,24 @@ export default {
         "email": "Email:",
     },
     "game":{
+        "demo": "Demo",
         "catTitle": "CatNet",
         "catIntro": "Explore the use of Neural Network in AR games.",
         "catPara": "Cat character construction with similar characteristics using augmented reality and artificial intelligence.",
         "metaTitle": "MetaHouse",
         "metaIntro": "A cloud game of Metaverse.",
         "metaPara": "Build your own house in Metaverse. Display and interact with your own virtual artworks and raise your virtual pet",
+        "concept": "Concept",
     },
     "project":{
         "nn": "Neural Network",
         "web": "Website",
         "ot": "Other Projects",
+    },
+    "artwork":{
+        "mg": "MG Animation",
+        "3d": "3D Artworks",
+        "pp": "Post-Production Edition",
+        "cc": "Commercial Projects",
     }
 }

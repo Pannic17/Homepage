@@ -1,9 +1,9 @@
 <template>
-  <p @click="$router.push({name: 'About'})">{{ $t("menu.about") }}</p>
-  <p @click="$router.push({name: 'Game'})">{{ $t("menu.game") }}</p>
-  <p @click="$router.push({name: 'Project'})">{{ $t("menu.project") }}</p>
-  <p @click="$router.push({name: 'Artwork'})">{{ $t("menu.artwork") }}</p>
-  <p v-if="$route.path!=='/'" @click="$router.push({name: 'Contact'})">{{ $t("menu.home") }}</p>
+  <br><router-link to="about">{{ $t("menu.about") }}</router-link>
+  <br><router-link to="game">{{ $t("menu.game") }}</router-link>
+  <br><router-link to="project">{{ $t("menu.project") }}</router-link>
+  <br><router-link to="artwork">{{ $t("menu.artwork") }}</router-link>
+  <br><router-link v-if="$route.path!=='/'" to="contact">{{ $t("menu.home") }}</router-link>
 </template>
 
 <script>

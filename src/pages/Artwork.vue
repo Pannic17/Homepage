@@ -3,19 +3,19 @@
   <Menu></Menu>
 
   <div>
-    <h1>Motion Graphic Animation</h1>
+    <h1>{{ $t("artwork.mg") }}</h1>
   </div>
 
   <div>
-    <h1>Post-Production Edition</h1>
+    <h1>{{ $t("artwork.3d") }}</h1>
   </div>
 
   <div>
-    <h1>3D Artworks</h1>
+    <h1>{{ $t("artwork.pp") }}</h1>
   </div>
 
   <div>
-    <h1>Commercial Projects</h1>
+    <h1>{{ $t("artwork.cc") }}</h1>
   </div>
 
 </template>
