@@ -8,20 +8,6 @@
 
 </template>
 
-<script setup lang="ts">
-import {useI18n} from "vue-i18n";
-
-const i18n = useI18n();
-const switchLanguage = () => {
-  if (i18n.locale.value == 'zh-CN'){
-    i18n.locale.value = 'en-US'
-
-  }else {
-    i18n.locale.value = 'zh-CN'
-  }
-}
-</script>
-
 <script lang="ts">
 export default {
   name: "Header"
@@ -32,6 +18,7 @@ export default {
 .heading{
   height: 40vmin;
   width: 30vmin;
+  margin-left: 2vmin;
 }
 
 .logo{

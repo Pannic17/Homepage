@@ -25,8 +25,26 @@ const routes = [
         path: '/project',
         name: 'Project',
         title: 'Project',
-        component: () => import('../pages/Project.vue')
+        component: () => import('../pages/project/Project.vue'),
     },
+    {
+        path: '/web-three-js',
+        name: 'Three',
+        component: () => import('../pages/project/Three.vue'),
+        children: [
+            {
+                path: '/web-three-js/01',
+                name: '01',
+                component: () => import('../components/three_01.vue')
+            },
+            {
+                path: '/web-three-js/02',
+                name: '02',
+                component: () => import('../components/three_02.vue')
+            }
+        ]
+    },
+
     {
         path: '/artwork',
         name: 'Artwork',
