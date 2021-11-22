@@ -1,14 +1,18 @@
 <template>
-  <Header></Header>
-  <router-link to="/project">back</router-link>
-  <br>
-  <div>
-    <router-link to="/web-three-js/01" class="part" active-class="active">01</router-link>
-    <router-link to="/web-three-js/02" class="part" active-class="active">02</router-link>
-  </div>
-  <div>
-    <router-view></router-view>
-  </div>
+  <body>
+    <Header></Header>
+
+    <div>
+      <router-link to="/project" class="part">back</router-link>
+      <router-link to="/web-three-js/01" class="part">01</router-link>
+      <router-link to="/web-three-js/02" class="part">02</router-link>
+      <router-link to="/web-three-js/03" class="part">03</router-link>
+      <router-link to="/web-three-js/04" class="part">04</router-link>
+    </div>
+    <div>
+      <router-view></router-view>
+    </div>
+  </body>
 </template>
 
 <script setup lang="ts">
@@ -26,7 +30,7 @@ export default {
   margin: 2vmin;
 }
 
-.active{
+.router-link-active{
   text-decoration: none;
 }
 </style>

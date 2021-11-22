@@ -1,6 +1,6 @@
 <template>
   <body>
-    <div id="canvas" style="width: 0.8vw; height: 0.45vw"></div>
+    <div id="three-canvas" style="width: 0.8vw; height: 0.45vw"></div>
   </body>
 </template>
 
@@ -8,16 +8,13 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
+import { initScene } from "./ThreeInit";
 
 function initThree (){
-  let canvas = document.getElementById('canvas')
-
-  const scene = new THREE.Scene();
-  const renderer = new THREE.WebGLRenderer({antialias: true});
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight);
-
-  renderer.setSize(window.innerWidth*.8, window.innerHeight*.8);
-  canvas.appendChild( renderer.domElement );
+  let init = initScene();
+  const scene = init.scene;
+  const camera = init.camera;
+  const renderer = init.renderer;
 
   const geometry = new THREE.TorusGeometry(1, .2, 10, 100)
   const material = new THREE.MeshPhongMaterial({color: 0xff0000});
@@ -62,5 +59,8 @@ export default {
 </script>
 
 <style scoped>
-
+#three-canvas{
+  text-align: center;
+  margin-left: 2vw;
+}
 </style>

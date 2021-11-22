@@ -1,0 +1,56 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>04.Loader</title>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+    //生成场景
+    const scene = new THREE.Scene();
+    //设置相机
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 5;
+    //设置渲染器
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0xFFFFFF);
+    document.body.appendChild(renderer.domElement);
+    //生成模型
+
+    const loader = new GLTFLoader();
+    loader.load(
+        '../src/assets/model/eevee.gltf',
+        function (gltf) {
+            scene.add(gltf.scene);
+            const light = new THREE.AmbientLight(0xFFFFFF); // soft white light
+            scene.add(light);
+            //渲染场景
+            renderer.render(scene, camera);
+        },
+        //加载过程中调用
+        function (xhr) {
+
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+
+        },
+        //加载出错时调用
+        function (error) {
+            console.log('An error happened');
+
+        }
+    );
+
+
+</script>
+</body>
+
+</html>

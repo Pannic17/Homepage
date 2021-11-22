@@ -7,8 +7,9 @@
 
 <script setup>
 import * as THREE from 'three/';
-import { onMounted } from "vue";
+import {onMounted, render} from "vue";
 import { initScene } from "./ThreeInit";
+import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 
 function initThree (){
   let init = initScene();
@@ -16,21 +17,15 @@ function initThree (){
   const camera = init.camera;
   const renderer = init.renderer;
 
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshBasicMaterial({color: 0xff0000});
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
+  camera.position.z = 3;
 
-  cube.position.z = -5;
-  cube.rotation.y = .2;
-  cube.rotation.z = .2;
-  const animate = function () {
-    cube.rotation.x += 0.01;
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-  };
+  const loader = new FBXLoader();
 
-  animate();
+  const light = new THREE.AmbientLight(0x404040, 10); // soft white light
+  scene.add(light);
+
+
+
 
 }
 
@@ -46,14 +41,13 @@ onMounted(() => {
 
 <script>
 export default {
-  name: "three_01"
+  name: "three_04"
 }
 </script>
 
 <style scoped>
 #three-canvas{
   text-align: center;
-  color: red;
   margin-left: 2vw;
 }
 </style>

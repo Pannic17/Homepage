@@ -41,6 +41,16 @@ const routes = [
                 path: '/web-three-js/02',
                 name: '02',
                 component: () => import('../components/three_02.vue')
+            },
+            {
+                path: '/web-three-js/03',
+                name: '03',
+                component: () => import('../components/three_03.vue')
+            },
+            {
+                path: '/web-three-js/04',
+                name: '04',
+                component: () => import('../components/three_04.vue')
             }
         ]
     },

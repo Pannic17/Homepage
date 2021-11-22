@@ -1,9 +1,9 @@
 <template>
   <p><a @click="switchLanguage" class="language"><u>{{ $t("menu.language")}}</u></a></p>
-  <p><router-link to="about" class="link" active-class="hover">{{ $t("menu.about") }}</router-link></p>
-  <p><router-link to="game" class="link" active-class="hover">{{ $t("menu.game") }}</router-link></p>
-  <p><router-link to="project" class="link" active-class="hover">{{ $t("menu.project") }}</router-link></p>
-  <p><router-link to="artwork" class="link" active-class="hover">{{ $t("menu.artwork") }}</router-link></p>
+  <p><router-link to="about" class="link">{{ $t("menu.about") }}</router-link></p>
+  <p><router-link to="game" class="link">{{ $t("menu.game") }}</router-link></p>
+  <p><router-link to="project" class="link">{{ $t("menu.project") }}</router-link></p>
+  <p><router-link to="artwork" class="link">{{ $t("menu.artwork") }}</router-link></p>
   <p><router-link v-if="$route.path!=='/'" to="contact" class="link">{{ $t("menu.home") }}</router-link></p>
 </template>
 
@@ -44,7 +44,7 @@ p{
   color: #2c3e50;
 }
 
-.hover{
+.router-link-active{
   text-decoration: line-through;
 }
 </style>
