@@ -7,9 +7,9 @@
 
 <script setup>
 import * as THREE from 'three/';
-import {onMounted, render} from "vue";
-import { initScene } from "./ThreeInit";
-import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
+import { onMounted } from "vue";
+import {initLight, initScene} from "./ThreeInit";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 
 function initThree (){
   let init = initScene();
@@ -18,17 +18,12 @@ function initThree (){
   const renderer = init.renderer;
 
   camera.position.z = 3;
+  camera.far = 2000;
 
-  const loader = new FBXLoader();
+  initLight(scene);
 
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-  hemiLight.position.set(0 , 200, 0)
 
-  loader.load(
-      function (fbx) {
 
-      }
-  )
 
 
 

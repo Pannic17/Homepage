@@ -7,8 +7,8 @@
 
 <script setup>
 import * as THREE from 'three/';
-import {onMounted, render} from "vue";
-import { initScene } from "./ThreeInit";
+import { onMounted } from "vue";
+import {initLight, initScene} from "./ThreeInit";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 function initThree (){
@@ -21,15 +21,15 @@ function initThree (){
 
   const loader = new GLTFLoader();
 
-  const light = new THREE.AmbientLight(0x404040, 10); // soft white light
-  scene.add(light);
+  initLight(scene);
 
   loader.load(
       '../src/assets/model/eevee.gltf',
       function (gltf) {
         var obj = gltf.scene.children[2];
         obj.position.y = -1;
-        console.log(obj)
+        //console.log(obj);
+
 
         const animate = function () {
           obj.rotation.z += 0.01;
@@ -39,8 +39,7 @@ function initThree (){
 
         animate();
 
-        scene.add(gltf.scene);
-        renderer.render(scene, camera);
+        scene.add(obj);
       },
       function (xhr) {
 
@@ -53,6 +52,8 @@ function initThree (){
       }
   );
 
+  const object = scene.children[0];
+  console.log(object);
 
 }
 
