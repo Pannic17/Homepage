@@ -21,8 +21,14 @@ function initThree (){
 
   const loader = new FBXLoader();
 
-  const light = new THREE.AmbientLight(0x404040, 10); // soft white light
-  scene.add(light);
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+  hemiLight.position.set(0 , 200, 0)
+
+  loader.load(
+      function (fbx) {
+
+      }
+  )
 
 
 
