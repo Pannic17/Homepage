@@ -29,9 +29,14 @@ function initThree (){
   light.position.set(0,0,1);
   scene.add(light);
 
+  initParticle();
+}
 
+
+
+
+const initParticle = function (){
   let loader = new THREE.TextureLoader();
-
   loader.load("../src/assets/image/smoke.png", function (texture){
     const portalGeo = new THREE.PlaneBufferGeometry(350, 350);
     const portalMaterial = new THREE.MeshStandardMaterial({
@@ -51,12 +56,8 @@ function initThree (){
       scene.add(particle);
     }
     clock = new THREE.Clock();
-    animate()
+    animate();
   })
-}
-
-const initParticle = function (){
-
 }
 
 const animate = function () {
@@ -65,6 +66,7 @@ const animate = function () {
     p.rotation.z -= delta *1.5;
   });
   renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
 
 onMounted(() => {
