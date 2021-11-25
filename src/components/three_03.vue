@@ -8,14 +8,17 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initLight, initScene} from "./ThreeInit";
+import { initScene} from "./ThreeInit";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+
+let scene, camera, renderer;
+
 
 function initThree (){
   let init = initScene();
-  const scene = init.scene;
-  const camera = init.camera;
-  const renderer = init.renderer;
+  scene = init.scene;
+  camera = init.camera;
+  renderer = init.renderer;
 
   camera.position.z = 3;
 
@@ -55,6 +58,29 @@ function initThree (){
   const object = scene.children[0];
   console.log(object);
 
+}
+
+function initLight (){
+  scene.background = new THREE.Color(0xa0a0a0);
+  scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
+
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+  hemiLight.position.set(0 , 200, 0);
+  scene.add(hemiLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff);
+  dirLight.position.set(0,200,100);
+  dirLight.castShadow = true;
+  dirLight.shadow.camera.top = 180;
+  dirLight.shadow.camera.bottom = - 100;
+  dirLight.shadow.camera.left = - 120;
+  dirLight.shadow.camera.right = 120;
+  scene.add( dirLight );
+
+  const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
+  mesh.rotation.x = - Math.PI / 2;
+  mesh.receiveShadow = true;
+  scene.add( mesh );
 }
 
 onMounted(() => {

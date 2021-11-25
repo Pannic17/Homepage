@@ -14,25 +14,40 @@ export function initScene (){
     return {scene, camera, renderer}
 }
 
-export function initLight (scene: THREE.Scene){
-    scene.background = new THREE.Color(0xa0a0a0);
-    scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
+export function randomFlashColor (){
+    let initHex = '0x';
+    const _Arr0 = ['9','a','b','c','d','e','f'];
+    const _Arr1 = ['0','1','2'];
+    const _Arr2 = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+    let mode = Math.round(Math.random()*4);
+    switch (mode){
+        case 0:
+            initHex += randomCombination(_Arr1,_Arr2);
+            initHex += randomCombination(_Arr1,_Arr2);
+            initHex += randomCombination(_Arr0,_Arr2);
+            break;
+        case 1:
+            initHex += randomCombination(_Arr0,_Arr2);
+            initHex += randomCombination(_Arr1,_Arr2);
+            initHex += randomCombination(_Arr0,_Arr2);
+            break;
+        case 2:
+            initHex += randomCombination(_Arr1,_Arr2);
+            initHex += randomCombination(_Arr0,_Arr2);
+            initHex += randomCombination(_Arr0,_Arr2);
+            break;
+        case 3:
+            initHex += randomCombination(_Arr0,_Arr2);
+            initHex += randomCombination(_Arr0,_Arr2);
+            initHex += randomCombination(_Arr0,_Arr2);
+            break;
+    }
+    console.log(initHex);
+    return initHex;
+}
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-    hemiLight.position.set(0 , 200, 0);
-    scene.add(hemiLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff);
-    dirLight.position.set(0,200,100);
-    dirLight.castShadow = true;
-    dirLight.shadow.camera.top = 180;
-    dirLight.shadow.camera.bottom = - 100;
-    dirLight.shadow.camera.left = - 120;
-    dirLight.shadow.camera.right = 120;
-    scene.add( dirLight );
-
-    const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
-    mesh.rotation.x = - Math.PI / 2;
-    mesh.receiveShadow = true;
-    scene.add( mesh );
+export function randomCombination(_First: Array<string>, _Second: Array<string>){
+    const first = Math.round(Math.random()*(_First.length));
+    const second = Math.round(Math.random()*(_Second.length));
+    return _First[first] + _Second[second];
 }

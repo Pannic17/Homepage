@@ -8,8 +8,7 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initLight, initScene} from "./ThreeInit";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import { initScene} from "./ThreeInit";
 
 
 let clock, renderer, scene, camera, point;
