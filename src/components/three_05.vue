@@ -8,10 +8,12 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import {initScene, randomFlashColor} from "./ThreeInit";
+import { initScene, randomFlashColor } from "./ThreeInit";
+import { Geometry } from "three/examples/jsm/deprecated/Geometry.js";
 
-let renderer, scene, camera, ambientLight, directionalLight, flash;
+let renderer, scene, camera, ambientLight, directionalLight, flash, rain, rainGeo;
 let cloudParticle = [];
+let rainVel = [];
 let defaultColor = new THREE.Color(0x062d89);
 
 function initThree (){
@@ -28,6 +30,7 @@ function initThree (){
   initEnvironment();
   initParticle();
   initFlash();
+  initRain();
 }
 
 const initEnvironment = function (){
@@ -73,11 +76,40 @@ const initParticle = function (){
   });
 }
 
+const initRain = function (){
+  const rainDrop = [];
+  for(let i=0;i<10000;i++) {
+    rainDrop.push(Math.random() * 400 -200)
+    rainDrop.push(Math.random() * 500 -250)
+    rainDrop.push(Math.random() * 400 -200)
+  }
+  rainGeo = new THREE.BufferGeometry();
+  rainGeo.setAttribute('position', new THREE.Float32BufferAttribute(rainDrop, 3))
+  const rainMaterial = new THREE.PointsMaterial({
+    color: 0xaaaaaa,
+    size: 0.1,
+    transparent: true
+  })
+  rain = new THREE.Points(rainGeo, rainMaterial);
+  scene.add(rain);
+}
+
 
 const animate = function (){
   cloudParticle.forEach(p => {
-    p.rotation.z -=0.01
+    p.rotation.z -=0.005
   });
+
+  const rainPosition = rainGeo.getAttribute('position');
+  for (let i=0; i<rainPosition.count;i++){
+    let y = rainPosition.getY(i);
+    y -= Math.random();
+    if (y<-200){
+      y = 200;
+    }
+    rainPosition.setY(i, y);
+  }
+  rainPosition.needsUpdate = true;
 
   if(Math.random()>0.93||flash.power>100){
     flash.position.set(

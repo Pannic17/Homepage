@@ -42,7 +42,7 @@ export function randomFlashColor (){
             initHex += randomCombination(_Arr0,_Arr2);
             break;
     }
-    console.log(initHex);
+    //console.log(initHex);
     return initHex;
 }
 
