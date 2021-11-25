@@ -55,7 +55,7 @@ const initParticle = function (){
       map: texture,
       transparent: true
     });
-    for(let p=0; p<25; p++) {
+    for(let p=0; p<40; p++) {
       let cloud = new THREE.Mesh(cloudGeo,cloudMaterial);
       cloud.position.set(
           Math.random()*800 -400,
