@@ -13,7 +13,6 @@ import { Geometry } from "three/examples/jsm/deprecated/Geometry.js";
 
 let renderer, scene, camera, ambientLight, directionalLight, flash, rain, rainGeo;
 let cloudParticle = [];
-let rainVel = [];
 let defaultColor = new THREE.Color(0x062d89);
 
 function initThree (){
@@ -25,12 +24,12 @@ function initThree (){
   camera.position.z = 1;
   camera.rotation.x = 1.16;
   camera.rotation.y = -0.12;
-  camera.rotation.z = 0.27
+  camera.rotation.z = 0.27;
 
   initEnvironment();
-  initParticle();
   initFlash();
   initRain();
+  initParticle();
 }
 
 const initEnvironment = function (){
@@ -52,7 +51,7 @@ const initFlash = function (){
 
 const initParticle = function (){
   let loader = new THREE.TextureLoader();
-  loader.load("../src/assets/image/smoke_2.png", function(texture){
+  loader.load("../src/assets/image/smoke_1.png", function(texture){
     const cloudGeo = new THREE.PlaneBufferGeometry(500,500);
     const cloudMaterial = new THREE.MeshLambertMaterial({
       map: texture,

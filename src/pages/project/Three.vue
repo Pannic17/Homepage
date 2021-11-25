@@ -9,6 +9,7 @@
       <router-link to="/web-three-js/03" class="part">03</router-link>
       <router-link to="/web-three-js/04" class="part">04</router-link>
       <router-link to="/web-three-js/05" class="part">05</router-link>
+      <router-link to="/web-three-js/06" class="part">06</router-link>
     </div>
     <div>
       <router-view></router-view>

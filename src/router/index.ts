@@ -56,6 +56,11 @@ const routes = [
                 path: '/web-three-js/05',
                 name: '05',
                 component: () => import('../components/three_05.vue')
+            },
+            {
+                path: '/web-three-js/06',
+                name: '06',
+                component: () => import('../components/three_06.vue')
             }
         ]
     },
