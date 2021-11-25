@@ -9,8 +9,6 @@
 import * as THREE from 'three/';
 import { onMounted } from "vue";
 import { initScene } from "./ThreeInit";
-import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader";
-import {PCDLoader} from "three/examples/jsm/loaders/PCDLoader";
 
 let scene, camera, renderer;
 
@@ -20,16 +18,30 @@ function initThree (){
   camera = init.camera;
   renderer = init.renderer;
 
-  camera.position.z = 1;
+  const geometry = new THREE.TorusGeometry(1, .2, 10, 100)
+  const material = new THREE.MeshPhongMaterial({color: 0xff0000});
+  const obj = new THREE.Mesh(geometry, material);
+  scene.add(obj);
 
-  const loader = new PCDLoader();
-  loader.load(
-      '../src/assets/model/eevee.fbx',
-      function ( points ) {
-        points.
-      }
-  )
+  const light = new THREE.DirectionalLight(0xffffff, 1.2);
+  light.position.x = 3;
+  light.position.y = 4;
+  light.position.z = 4;
+  scene.add(light);
 
+  scene.fog = new THREE.Fog(0xffffff, 0, 20000);
+  renderer.setClearColor( scene.fog.color, 1 );
+
+  obj.position.z = -5;
+  obj.rotation.y = .2;
+  obj.rotation.z = .2;
+  const animate = function () {
+    obj.rotation.x += 0.01;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  };
+
+  animate();
 }
 
 onMounted(() => {
