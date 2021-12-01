@@ -46,14 +46,10 @@
 
 <script lang="ts">
 export default {
-  name: "Game"
+  name: 'Game'
 }
 </script>
 
-<script setup lang="ts">
-import Header from "../components/Header.vue";
-import Menu from "../components/Menu.vue";
-</script>
 
 <style scoped>
 
