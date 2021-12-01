@@ -8,7 +8,7 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initScene} from "./ThreeInit";
+import { initScene} from "../ThreeInit";
 
 
 let clock, renderer, scene, camera, point;

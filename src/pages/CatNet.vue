@@ -12,11 +12,6 @@
           {{ $t("game.catIntro") }}<br>
           {{ $t("game.catPara") }}
         </p>
-        <p>
-          Download <br>
-          Windows version: <a href="https://1drv.ms/u/s!Ag4vhDewz-hX0xFpGyUyfORWu7bF?e=7jwP1l">CatNet.zip</a> <br>
-          Android Version: <a href="https://1drv.ms/u/s!Ag4vhDewz-hX0w-XpRU-601Wdad-?e=Ge341I">CatNet.apk</a> <br>
-        </p>
       </div>
       <div>
         <h2>{{ $t("game.metaTitle") }}</h2>

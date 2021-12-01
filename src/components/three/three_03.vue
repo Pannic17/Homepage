@@ -8,10 +8,10 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initScene} from "./ThreeInit";
+import { initScene} from "../ThreeInit";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
-let scene, camera, renderer;
+let scene, camera, renderer, obj;
 
 
 function initThree (){
@@ -29,13 +29,14 @@ function initThree (){
   loader.load(
       '../src/assets/model/eevee.gltf',
       function (gltf) {
-        var obj = gltf.scene.children[2];
+        obj = gltf.scene.children[2];
         obj.position.y = -1;
         //console.log(obj);
 
 
         const animate = function () {
           obj.rotation.z += 0.01;
+
           renderer.render(scene, camera);
           requestAnimationFrame(animate);
         };
@@ -56,7 +57,7 @@ function initThree (){
   );
 
   const object = scene.children[0];
-  console.log(object);
+  //console.log(object);
 
 }
 

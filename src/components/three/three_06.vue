@@ -9,7 +9,7 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initScene } from "./ThreeInit";
+import { initScene } from "../ThreeInit";
 
 import {BloomEffect, BlendFunction, KernelSize, TextureEffect, EffectPass} from 'postprocessing';
 import {EffectComposer} from "three/examples/jsm/postprocessing/EffectComposer";

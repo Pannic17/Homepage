@@ -8,7 +8,7 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initScene } from "./ThreeInit";
+import { initScene } from "../ThreeInit";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";

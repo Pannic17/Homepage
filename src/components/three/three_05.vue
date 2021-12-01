@@ -8,7 +8,7 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initScene, randomFlashColor } from "./ThreeInit";
+import { initScene, randomFlashColor } from "../ThreeInit";
 import { Geometry } from "three/examples/jsm/deprecated/Geometry.js";
 
 let renderer, scene, camera, ambientLight, directionalLight, flash, rain, rainGeo;

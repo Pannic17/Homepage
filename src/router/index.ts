@@ -28,39 +28,39 @@ const routes = [
         component: () => import('../pages/project/Project.vue'),
     },
     {
-        path: '/web-three-js',
+        path: '/three',
         name: 'Three',
         component: () => import('../pages/project/Three.vue'),
         children: [
             {
-                path: '/web-three-js/01',
+                path: '/three/01',
                 name: '01',
-                component: () => import('../components/three_01.vue')
+                component: () => import('../components/three/three_01.vue')
             },
             {
-                path: '/web-three-js/02',
+                path: '/three/02',
                 name: '02',
-                component: () => import('../components/three_02.vue')
+                component: () => import('../components/three/three_02.vue')
             },
             {
-                path: '/web-three-js/03',
+                path: '/three/03',
                 name: '03',
-                component: () => import('../components/three_03.vue')
+                component: () => import('../components/three/three_03.vue')
             },
             {
-                path: '/web-three-js/04',
+                path: '/three/04',
                 name: '04',
-                component: () => import('../components/three_04.vue')
+                component: () => import('../components/three/three_04.vue')
             },
             {
-                path: '/web-three-js/05',
+                path: '/three/05',
                 name: '05',
-                component: () => import('../components/three_05.vue')
+                component: () => import('../components/three/three_05.vue')
             },
             {
-                path: '/web-three-js/06',
+                path: '/three/06',
                 name: '06',
-                component: () => import('../components/three_06.vue')
+                component: () => import('../components/three/three_06.vue')
             }
         ]
     },

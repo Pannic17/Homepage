@@ -9,7 +9,7 @@
 
     <div>
       <h1>{{ $t("project.web") }}</h1>
-      <router-link to="web-three-js">Three.js</router-link>
+      <router-link to="three">Three.js</router-link>
     </div>
 
     <div>
