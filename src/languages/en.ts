@@ -28,8 +28,9 @@ export default {
         "concept": "Concept",
     },
     "project":{
-        "nn": "Neural Network",
         "web": "Website",
+        "nn": "Neural Network",
+        "cp": "Creative Programming",
         "ot": "Other Projects",
     },
     "artwork":{

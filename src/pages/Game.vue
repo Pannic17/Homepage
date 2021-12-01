@@ -35,9 +35,6 @@
       <div>
         <h2>Cat Caf&#233</h2>
       </div>
-      <div>
-        <h2>PSY-I</h2>
-      </div>
     </div>
   </body>
 

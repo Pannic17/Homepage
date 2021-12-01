@@ -28,8 +28,9 @@ export default {
         "concept": "项目企划",
     },
     "project":{
-        "nn": "神经网络",
         "web": "网站",
+        "nn": "神经网络",
+        "cp": "创意编程",
         "ot": "其他",
     },
     "artwork":{
