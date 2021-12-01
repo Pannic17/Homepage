@@ -20,15 +20,17 @@
 
 </template>
 
-<script lang="ts">
-export default {
-  name: "Project"
-}
-</script>
+
 
 <script setup lang="ts">
 import Header from "../../components/Header.vue";
 import Menu from "../../components/Menu.vue";
+</script>
+
+<script lang="ts">
+export default {
+  name: "Project"
+}
 </script>
 
 <style scoped>

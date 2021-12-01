@@ -75,7 +75,8 @@ const initCloud = function (){
     cloudGeo = new THREE.PlaneBufferGeometry(500,500);
     cloudMaterial = new THREE.MeshLambertMaterial({
       map:texture,
-      transparent: true
+      transparent: true,
+      depthTest: false
     });
 
     for(let p=0; p<50; p++) {

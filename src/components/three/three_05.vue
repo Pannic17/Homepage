@@ -55,7 +55,8 @@ const initParticle = function (){
     const cloudGeo = new THREE.PlaneBufferGeometry(500,500);
     const cloudMaterial = new THREE.MeshLambertMaterial({
       map: texture,
-      transparent: true
+      transparent: true,
+      depthTest: false
     });
     for(let p=0; p<40; p++) {
       let cloud = new THREE.Mesh(cloudGeo,cloudMaterial);
@@ -87,7 +88,8 @@ const initRain = function (){
   const rainMaterial = new THREE.PointsMaterial({
     color: 0xaaaaaa,
     size: 0.1,
-    transparent: true
+    transparent: true,
+    depthTest: false
   })
   rain = new THREE.Points(rainGeo, rainMaterial);
   scene.add(rain);
