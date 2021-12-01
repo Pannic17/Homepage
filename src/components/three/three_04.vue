@@ -21,6 +21,7 @@ function initThree (){
   scene = init.scene;
   camera = init.camera;
   renderer = init.renderer;
+  init.control.enabled = false;
 
   camera.position.z = 1000;
   camera.far = 10000;
@@ -35,9 +36,6 @@ function initThree (){
 
   initParticle();
 }
-
-
-
 
 const initParticle = function (){
   let loader = new THREE.TextureLoader();
@@ -61,7 +59,6 @@ const initParticle = function (){
       scene.add(particle);
     }
 
-
     const smokeGeo = new THREE.PlaneBufferGeometry(1000, 1000);
     const smokeMaterial = new THREE.MeshStandardMaterial({
       map: texture,
@@ -80,8 +77,6 @@ const initParticle = function (){
       smokeParticles.push(particle);
       scene.add(particle);
     }
-
-
 
     clock = new THREE.Clock();
     animate();

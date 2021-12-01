@@ -15,16 +15,16 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
 import { DotScreenShader } from "three/examples/jsm/shaders/DotScreenShader";
 import { RGBShiftShader } from "three/examples/jsm/shaders/RGBShiftShader";
 
-let scene, camera, renderer, composer, object;
+let scene, camera, renderer, control, composer, object;
 
 function initThree (){
   let init = initScene();
   scene = init.scene;
   camera = init.camera;
   renderer = init.renderer;
+  control = init.control;
 
   camera.position.z = 400;
-
   object = new THREE.Object3D();
   scene.add(object);
 
@@ -63,6 +63,7 @@ const animate = function () {
   requestAnimationFrame(animate);
   object.rotation.x += 0.005;
   object.rotation.y += 0.01;
+  control.update();
   composer.render();
 }
 

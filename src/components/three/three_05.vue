@@ -20,6 +20,7 @@ function initThree (){
   scene = init.scene;
   camera = init.camera;
   renderer = init.renderer;
+  init.control.enabled = false;
 
   camera.position.z = 1;
   camera.rotation.x = 1.16;

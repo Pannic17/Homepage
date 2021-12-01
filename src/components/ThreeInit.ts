@@ -1,5 +1,6 @@
 // @ts-ignore
 import * as THREE from 'three/';
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
 export function initScene (){
     let canvas = document.getElementById('three-canvas');
@@ -7,11 +8,15 @@ export function initScene (){
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer({antialias: true});
     const camera = new THREE.PerspectiveCamera(60, 16 / 9, 1);
+    // @ts-ignore
+    const control = new OrbitControls(camera, canvas);
+    control.enableDamping = true;
+    control.rotateSpeed = 0.1;
     renderer.setSize(window.innerWidth*.96, window.innerWidth*.54);
     // @ts-ignore
     canvas.appendChild( renderer.domElement );
 
-    return {scene, camera, renderer}
+    return {scene, camera, renderer, control}
 }
 
 export function randomFlashColor (){

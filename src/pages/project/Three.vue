@@ -10,6 +10,7 @@
       <router-link to="/three/04" class="part">04</router-link>
       <router-link to="/three/05" class="part">05</router-link>
       <router-link to="/three/06" class="part">06</router-link>
+      <router-link to="/three/07" class="part">07</router-link>
     </div>
     <div>
       <router-view></router-view>

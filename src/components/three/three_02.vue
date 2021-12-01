@@ -11,17 +11,16 @@ import { onMounted } from "vue";
 import { initScene } from "../ThreeInit";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
-let scene, camera, renderer, model;
+let scene, camera, renderer, control, model, sphereParticles;
 
 function initThree (){
   let init = initScene();
   scene = init.scene;
   camera = init.camera;
   renderer = init.renderer;
+  control = init.control;
 
   camera.position.z = 2;
-
-
 
   const loader = new GLTFLoader();
   loader.load(
@@ -36,7 +35,8 @@ function initThree (){
           color: new THREE.Color('#8bffff'),
           opacity: 0.5,
           transparent: true,
-          depthTest: false
+          depthTest: false,
+          blending: THREE.AdditiveBlending
         });
         const modelParticles = new THREE.Points(modelGeometry, modelMaterial);
         scene.add(modelParticles);
@@ -47,27 +47,14 @@ function initThree (){
 }
 
 function initSphere (){
-
   const sphereGeometry = new THREE.SphereBufferGeometry(1, 32, 32);
   const sphereMaterial = new THREE.PointsMaterial({
     size: 0.02,
     sizeAttenuation: true,
   })
-  const sphereParticles = new THREE.Points(sphereGeometry, sphereMaterial);
+  sphereParticles = new THREE.Points(sphereGeometry, sphereMaterial);
   scene.add(sphereParticles);
 }
-
-onMounted(() => {
-  initThree();
-  window.onresize = function (){
-    location.reload()
-  }
-})
-
-const animate = function () {
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
-};
 
 function initRandom(){
   const count = 5000;
@@ -84,13 +71,23 @@ function initRandom(){
     transparent: true,
     depthTest: false
   });
-
-
-
   const randomParticles = new THREE.Points(particleGeometry, particleMaterial);
   scene.add(randomParticles);
 }
 
+const animate = function () {
+  sphereParticles.rotation.y += 0.5
+  control.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+};
+
+onMounted(() => {
+  initThree();
+  window.onresize = function (){
+    location.reload()
+  }
+})
 
 </script>
 

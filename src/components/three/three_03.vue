@@ -13,7 +13,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 let scene, camera, renderer, obj;
 
-
 function initThree (){
   let init = initScene();
   scene = init.scene;
@@ -21,45 +20,27 @@ function initThree (){
   renderer = init.renderer;
 
   camera.position.z = 3;
-
-  const loader = new GLTFLoader();
-
   initLight(scene);
 
+  const loader = new GLTFLoader();
   loader.load(
       '../src/assets/model/eevee.gltf',
       function (gltf) {
         obj = gltf.scene.children[2];
         obj.position.y = -1;
-        //console.log(obj);
-
-
-        const animate = function () {
-          obj.rotation.z += 0.01;
-
-          renderer.render(scene, camera);
-          requestAnimationFrame(animate);
-        };
-
-        animate();
-
         scene.add(obj);
+        animate();
       },
-      function (xhr) {
-
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-
-      },
-      function (error) {
-        console.log('An error happened');
-
-      }
+      function (xhr) {console.log((xhr.loaded / xhr.total * 100) + '% loaded');},
+      function (error) {console.log('An error happened');}
   );
-
-  const object = scene.children[0];
-  //console.log(object);
-
 }
+
+const animate = function () {
+  obj.rotation.z += 0.01;
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+};
 
 function initLight (){
   scene.background = new THREE.Color(0xa0a0a0);

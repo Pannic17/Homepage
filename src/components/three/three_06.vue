@@ -19,13 +19,14 @@ let scene, camera, renderer, composer;
 let cloudGeo, cloudMaterial, textureEffect;
 let cloudParticles = []
 
-const loader = new THREE.TextureLoader();
+
 
 function initThree (){
   let init = initScene();
   scene = init.scene;
   camera = init.camera;
   renderer = init.renderer;
+  init.control.enabled = false;
 
   camera.position.z = 1;
   camera.rotation.x = 1.16;
@@ -34,18 +35,19 @@ function initThree (){
 
   initLight();
   initCloud();
-
-  loader.load("../src/assets/image/galaxy.jpg", function (texture){
+  
+  const galaxy = new THREE.TextureLoader();
+  galaxy.load("../src/assets/image/galaxy.jpg", function (texture){
     textureEffect = new TextureEffect({
       blendFunction: BlendFunction.COLOR_DODGE,
       texture: texture
     });
-    textureEffect.blendMode.opacity.value = 0.2;
 
+    textureEffect.blendMode.opacity.value = 0.2;
     postEffect();
-    animate();
   });
 
+  animate();
 }
 
 function initLight (){
@@ -71,7 +73,8 @@ function initLight (){
 }
 
 const initCloud = function (){
-  loader.load("../src/assets/image/smoke_2.png", function(texture){
+  const texture = new THREE.TextureLoader();
+  texture.load("../src/assets/image/smoke_2.png", function(texture){
     cloudGeo = new THREE.PlaneBufferGeometry(500,500);
     cloudMaterial = new THREE.MeshLambertMaterial({
       map:texture,
