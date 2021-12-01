@@ -69,7 +69,14 @@ const routes = [
             }
         ]
     },
+    {
+        path: '/css',
+        name: 'Css',
+        component: () => import('../pages/project/Css.vue'),
+        children: [
 
+        ]
+    },
     {
         path: '/artwork',
         name: 'Artwork',

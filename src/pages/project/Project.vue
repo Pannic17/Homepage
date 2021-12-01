@@ -6,6 +6,7 @@
 
     <div>
       <h1>{{ $t("project.web") }}</h1>
+      <router-link to="css">Web Design Practices</router-link>
     </div>
 
     <div>
