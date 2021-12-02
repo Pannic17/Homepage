@@ -10,7 +10,7 @@ const messages = {
 
 const defaultLanguage = 'en-US';
 
-var currentLanguage = defaultLanguage;
+let currentLanguage = defaultLanguage;
 
 if (navigator.language.toLowerCase().includes('zh')){
     currentLanguage = 'zh-CN';

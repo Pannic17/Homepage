@@ -22,6 +22,11 @@ export default {
         "catTitle": "CatNet",
         "catIntro": "Explore the use of Neural Network in AR games.",
         "catPara": "Cat character construction with similar characteristics using augmented reality and artificial intelligence.",
+        "catDetail": "Detect cat, classify its color and pattern, and then generate a cat chibi model with similar characteristics or reconstruct 3D cat model in Unity to realized a lightweight fast AR program demo using neural network and computer vision algorithms. " +
+            "The detection is based on built in Haar Cascaded by OpenCV, which will be replaced by self-trained YOLO v2 to utilize detection accuracy. " +
+            "The classification of cats' pattern make use of Unity Barracuda packages and a self-trained MobileNet v2 neural network model with accuracy over 80%. " +
+            "K-Means algorithm is used to cluster cat's cat into 3 classes for cats' model generation. " +
+            "Current demo can detect 7 classes of cats: solid, bicolor, tabby, colorpoint, orange, calico and mixed pattern of both tabby and bicolor. Further support may includes irregular pattern and hair classification.",
         "metaTitle": "MetaHouse",
         "metaIntro": "A cloud game of Metaverse.",
         "metaPara": "Build your own house in Metaverse. Display and interact with your own virtual artworks and raise your virtual pet",
