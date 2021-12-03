@@ -14,7 +14,6 @@ const i18n = useI18n();
 const switchLanguage = () => {
   if (i18n.locale.value == 'zh-CN'){
     i18n.locale.value = 'en-US'
-
   }else {
     i18n.locale.value = 'zh-CN'
   }

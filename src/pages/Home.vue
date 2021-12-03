@@ -1,7 +1,7 @@
 <template>
   <body>
-    <div class="heading"><Header></Header></div>
-    <div class="menu"><Menu></Menu></div>
+    <div class="heading"><Header /></div>
+    <div class="menu"><Menu /></div>
 
     <div class="socialCanvas">
       <a href="mailto:pannic1984@outlook.com"><img class="social" src="../assets/image/icon_email.png" alt="Email"></a>

@@ -7,25 +7,27 @@
       <h1>{{ $t("game.demo") }}</h1>
 
       <div>
-        <h2>{{ $t("game.catTitle") }}</h2>
+        <h2>{{ $t("game.cat.title") }}</h2>
         <p>
-          {{ $t("game.catIntro") }}<br>
-          {{ $t("game.catPara") }}
+          {{ $t("game.cat.intro1") }}<br>
+          {{ $t("game.cat.intro2") }}
         </p>
         <p>
-          {{ $t("game.catDetail") }}
+          {{ $t("game.cat.detail") }}
         </p>
         <p>
-          Download <br>
-          Windows version: <a href="https://1drv.ms/u/s!Ag4vhDewz-hX0xFpGyUyfORWu7bF?e=7jwP1l">CatNet.zip</a> <br>
-          Android Version: <a href="https://1drv.ms/u/s!Ag4vhDewz-hX0w-XpRU-601Wdad-?e=Ge341I">CatNet.apk</a> <br>
+          {{ $t("game.cat.download") }}<br>
+          {{ $t("game.cat.windows") }}<a href="https://1drv.ms/u/s!Ag4vhDewz-hX0xFpGyUyfORWu7bF?e=7jwP1l">CatNet.zip</a> <br>
+          {{ $t("game.cat.android") }}<a href="https://1drv.ms/u/s!Ag4vhDewz-hX0w-XpRU-601Wdad-?e=Ge341I">CatNet.apk</a> <br>
         </p>
       </div>
       <div>
-        <h2>{{ $t("game.metaTitle") }}</h2>
+        <h2>{{ $t("game.meta.title") }}</h2>
         <p>
-          {{ $t("game.metaIntro") }}<br>
-          {{ $t("game.metaPara") }}
+          {{ $t("game.meta.intro") }}<br>
+          {{ $t("game.meta.para0") }}
+          <a href="http://www.kaiwuart.io/">{{ $t("game.meta.site") }}</a>
+          {{ $t("game.meta.para1") }}
         </p>
       </div>
     </div>
