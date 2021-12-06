@@ -9,7 +9,7 @@
 import * as THREE from 'three/';
 import { onMounted } from "vue";
 import { initScene } from "../ThreeInit";
-import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 let scene, camera, renderer, control, model, sphereParticles;
 
@@ -24,11 +24,11 @@ function initThree (){
 
   const loader = new GLTFLoader();
   loader.load(
-      '../src/assets/model/eevee.gltf',
+      "./static/model/eevee.gltf",
       function ( gltf ) {
         model = gltf.scene.children[2];
         const modelGeometry = model.geometry;
-        const particleTexture = new THREE.TextureLoader().load('../src/assets/image/circle.png');
+        const particleTexture = new THREE.TextureLoader().load('/static/image/circle.png');
         const modelMaterial = new THREE.PointsMaterial({
           size: 0.08,
           map: particleTexture,

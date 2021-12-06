@@ -52,7 +52,7 @@ const initFlash = function (){
 
 const initParticle = function (){
   let loader = new THREE.TextureLoader();
-  loader.load("../src/assets/image/smoke_1.png", function(texture){
+  loader.load("../static/image/smoke_1.png", function(texture){
     const cloudGeo = new THREE.PlaneBufferGeometry(500,500);
     const cloudMaterial = new THREE.MeshLambertMaterial({
       map: texture,
