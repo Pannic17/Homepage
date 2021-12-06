@@ -24,7 +24,7 @@ function initThree (){
 
   const loader = new GLTFLoader();
   loader.load(
-      '/public/model/eevee.gltf',
+      '/model/eevee.gltf',
       function (gltf) {
         obj = gltf.scene.children[2];
         obj.position.y = -1;

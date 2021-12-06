@@ -24,11 +24,11 @@ function initThree (){
 
   const loader = new GLTFLoader();
   loader.load(
-      "/public/model/eevee.gltf",
+      "/model/eevee.gltf",
       function ( gltf ) {
         model = gltf.scene.children[2];
         const modelGeometry = model.geometry;
-        const particleTexture = new THREE.TextureLoader().load('/public/image/circle.png');
+        const particleTexture = new THREE.TextureLoader().load('/image/circle.png');
         const modelMaterial = new THREE.PointsMaterial({
           size: 0.08,
           map: particleTexture,

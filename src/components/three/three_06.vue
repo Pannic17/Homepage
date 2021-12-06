@@ -37,7 +37,7 @@ function initThree (){
   initCloud();
   
   const galaxy = new THREE.TextureLoader();
-  galaxy.load("../static/image/galaxy.jpg", function (texture){
+  galaxy.load("/image/galaxy.jpg", function (texture){
     textureEffect = new TextureEffect({
       blendFunction: BlendFunction.COLOR_DODGE,
       texture: texture
@@ -74,7 +74,7 @@ function initLight (){
 
 const initCloud = function (){
   const texture = new THREE.TextureLoader();
-  texture.load("/public/image/smoke_2.png", function(texture){
+  texture.load("/image/smoke_2.png", function(texture){
     cloudGeo = new THREE.PlaneBufferGeometry(500,500);
     cloudMaterial = new THREE.MeshLambertMaterial({
       map:texture,
