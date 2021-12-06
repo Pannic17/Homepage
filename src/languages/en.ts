@@ -50,7 +50,7 @@ export default {
     "artwork":{
         "mg": "MG Animation",
         "3d": "3D Artworks",
-        "pp": "Post-Production Edition",
+        "pp": "Post-Production",
         "cc": "Commercial Projects",
     }
 }
