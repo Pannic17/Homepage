@@ -24,7 +24,7 @@ function initThree (){
 
   const loader = new GLTFLoader();
   loader.load(
-      "./public/model/eevee.gltf",
+      "/public/model/eevee.gltf",
       function ( gltf ) {
         model = gltf.scene.children[2];
         const modelGeometry = model.geometry;
