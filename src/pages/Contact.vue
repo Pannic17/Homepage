@@ -19,6 +19,9 @@
     <a href="https://www.instagram.com/pannic17/">Instagram</a>
   </p>
 
+  <p>
+    Version 1.35
+  </p>
 </template>
 
 <script setup lang="ts">
