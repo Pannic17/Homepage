@@ -39,7 +39,7 @@ function initThree (){
 
 const initParticle = function (){
   let loader = new THREE.TextureLoader();
-  loader.load("../static/image/smoke_3.png", function (texture){
+  loader.load("../public/image/smoke_3.png", function (texture){
     const portalGeo = new THREE.PlaneBufferGeometry(350, 350);
     const portalMaterial = new THREE.MeshStandardMaterial({
       map: texture,

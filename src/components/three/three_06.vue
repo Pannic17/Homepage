@@ -74,7 +74,7 @@ function initLight (){
 
 const initCloud = function (){
   const texture = new THREE.TextureLoader();
-  texture.load("../static/image/smoke_2.png", function(texture){
+  texture.load("../public/image/smoke_2.png", function(texture){
     cloudGeo = new THREE.PlaneBufferGeometry(500,500);
     cloudMaterial = new THREE.MeshLambertMaterial({
       map:texture,
