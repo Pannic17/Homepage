@@ -1,3 +1,9 @@
+# HOMEPAGE includes profolio and introduction
+[pannic.art](http://pannic.art)  
+[tencent cloud](https://homepage-2glz1j8c64ea8b56-1308663829.ap-shanghai.app.tcloudbase.com)  
+Mounted on Tencent Cloud
+
+
 # Vue 3 + Typescript + Vite
 
 This template should help get you started developing with Vue 3 and Typescript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
