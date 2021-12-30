@@ -3,14 +3,14 @@
     <Header></Header>
 
     <div>
-      <router-link to="/project" class="part">back</router-link>
-      <router-link to="/three/01" class="part">01</router-link>
-      <router-link to="/three/02" class="part">02</router-link>
-      <router-link to="/three/03" class="part">03</router-link>
-      <router-link to="/three/04" class="part">04</router-link>
-      <router-link to="/three/05" class="part">05</router-link>
-      <router-link to="/three/06" class="part">06</router-link>
-      <router-link to="/three/07" class="part">07</router-link>
+      <router-link to="/project" class="link">back</router-link>
+      <router-link to="/three/01" class="link">01</router-link>
+      <router-link to="/three/02" class="link">02</router-link>
+      <router-link to="/three/03" class="link">03</router-link>
+      <router-link to="/three/04" class="link">04</router-link>
+      <router-link to="/three/05" class="link">05</router-link>
+      <router-link to="/three/06" class="link">06</router-link>
+      <router-link to="/three/07" class="link">07</router-link>
     </div>
     <div>
       <router-view></router-view>
@@ -29,7 +29,7 @@ export default {
 </script>
 
 <style scoped>
-.part{
+.link{
   margin: 2vmin;
 }
 

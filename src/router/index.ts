@@ -70,6 +70,11 @@ const routes = [
         ]
     },
     {
+        path: '/sketchfab',
+        name: 'sketchfab',
+        component: () => import('../pages/project/Sketchfab.vue')
+    },
+    {
         path: '/css',
         name: 'Css',
         component: () => import('../pages/project/Css.vue'),

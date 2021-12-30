@@ -15,7 +15,8 @@
 
     <div>
       <h1>{{ $t("project.cp") }}</h1>
-      <router-link to="three">Three.js</router-link>
+      <p><router-link to="three">Three.js</router-link></p>
+      <p><router-link to="sketchfab">Sketchfab</router-link></p>
       <p>Processing</p>
     </div>
 
