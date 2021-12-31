@@ -43,6 +43,7 @@ export default {
     },
     "project":{
         "web": "Website",
+        "wx": "WX Miniprogram",
         "nn": "Neural Network",
         "cp": "Creative Programming",
         "ot": "Other Projects",

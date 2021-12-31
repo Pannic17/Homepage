@@ -39,6 +39,7 @@ export default {
     },
     "project":{
         "web": "网站",
+        "wx": "微信小程序",
         "nn": "神经网络",
         "cp": "创意编程",
         "ot": "其他",

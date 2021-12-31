@@ -10,6 +10,10 @@
     </div>
 
     <div>
+      <h1>{{ $t("project.wx") }}</h1>
+    </div>
+
+    <div>
       <h1>{{ $t("project.nn") }}</h1>
     </div>
 
