@@ -38,7 +38,7 @@ export default {
             "intro": "Trade and display platform for NFT artworks, a home in metaverse based on cloud game",
             "para0": "Buy and trade your NFT crypto artworks like digital sculpture, garage kit, cg graphics or interactive artworks on",
             "site": "kaiwuart.io",
-            "para1": "And build your own house in Metaverse. Display and interact with your own virtual artworks in virtual home ‘MetaHouse’ and raise your virtual pet",
+            "para1": "And build your own house in metaverse. Display and interact with your own virtual artworks in virtual home ‘MetaHouse’ and raise your virtual pet",
         },
     },
     "project":{
