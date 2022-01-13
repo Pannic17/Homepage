@@ -26,7 +26,7 @@ Global Variables
 let scene, camera, renderer, canvas, obj;
 let control, gui;
 // For customized touch events
-let startY;
+let startRotate, startZoom, zoomDistance;
 let speed = 0.001;
 let pointLight, ambientLight;
 
@@ -37,9 +37,6 @@ let parameters = {
   roughness: 0.0,
   metalness: 0.0,
   exposure: 0.0,
-  lightX: 0,
-  lightY: 0,
-  lightZ: 0,
   intensity: 1,
   cameraPos: {
     x: 0,
@@ -98,18 +95,67 @@ function initTouch() {
 }
 
 // Touch Helper
-function onTouchStart(event) {
-  startY = event.touches[0].pageY;
+function onSingleTouchStart(event) {
+  startRotate = event.touches[0].pageY;
 }
 
-function onTouchMove(event) {
-  let deltaY = ( event.touches[ 0 ].pageY - startY );
-  camera.position.y += ( deltaY * speed );
+function onSingleTouchMove(event) {
+  let delta = ( event.touches[0].pageY - startRotate );
+  camera.position.y += ( delta * speed );
+}
+
+function onDoubleTouchStart(event) {
+  startZoom = event.touches[0].pageY;
+  zoomDistance = Math.abs(event.touches[0].pageY - event.touches[1].pageY);
+}
+
+function onDoubleTouchMove(event) {
+  let offsetZoom = Math.abs(event.touches[0].pageY - startZoom);
+  let deltaDistance = Math.abs(event.touches[0].pageY - event.touches[1].pageY) - zoomDistance;
+  if (deltaDistance > 0){
+    // zoom in
+    let delta = offsetZoom * speed;
+    if (camera.position.z >= -1 || (camera.position.z + delta) >= -1 ) {
+      camera.position.z = -1
+    } else {
+      camera.position.z += delta;
+    }
+  } else if (deltaDistance < 0){
+    // zoom out
+    let delta = offsetZoom * speed;
+    if (camera.position.z <= -100 || (camera.position.z - delta) <= -100) {
+      camera.position.z = -100
+    } else {
+      camera.position.z -= delta;
+    }
+  }
 }
 
 function touchListener() {
-  renderer.domElement.addEventListener( 'touchstart', onTouchStart, false );
-  renderer.domElement.addEventListener( 'touchmove', onTouchMove, false );
+  // renderer.domElement.addEventListener( 'touchstart', onSingleTouchStart, false );
+  // renderer.domElement.addEventListener( 'touchmove', onSingleTouchMove, false );
+
+
+
+  renderer.domElement.addEventListener( 'touchstart', function (event) {
+    let touches = event.touches;
+    // noinspection EqualityComparisonWithCoercionJS
+    if (touches && touches.length == 1) {
+      onSingleTouchStart(event);
+    } else if (touches && touches.length >= 2) {
+      onDoubleTouchStart(event);
+    }
+  });
+
+  renderer.domElement.addEventListener( 'touchmove', function (event) {
+    let touches = event.touches;
+    // noinspection EqualityComparisonWithCoercionJS
+    if (touches && touches.length == 1) {
+      onSingleTouchMove(event);
+    } else if (touches && touches.length >= 2) {
+      onDoubleTouchMove(event);
+    }
+  })
 }
 
 function initThree (){
@@ -284,6 +330,12 @@ export default {
 </script>
 
 <style scoped>
+body{
+  height: 100%;
+  width: 100%;
+}
+
+
 #three-canvas{
   text-align: center;
   margin-left: 2vw;
