@@ -169,7 +169,7 @@ function initThree (){
 
   initCanvas();
 
-  initControl();
+  // initControl();
 
   touchListener();
 

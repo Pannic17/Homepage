@@ -15,7 +15,8 @@
   color: #2c3e50;
 }
 
-body{
+body,html{
   margin: 0;
+  height: 100%;
 }
 </style>
