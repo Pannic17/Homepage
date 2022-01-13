@@ -84,6 +84,8 @@ function initControl() {
   control = new OrbitControls(camera, canvas);
   control.enableDamping = true;
   control.rotateSpeed = speed * 1000;
+  control.maxZoom = 100;
+  control.maxDistance = 100;
   // initTouch();
 }
 
@@ -103,8 +105,9 @@ function onSingleTouchStart(event) {
 function onSingleTouchMove(event) {
   let deltaX = (event.touches[0].pageX - startXRotate);
   let deltaY = (event.touches[0].pageY - startYRotate);
-  camera.position.x += 15 * Math.cos(deltaX * speed);
-  camera.position.y += 15 * Math.cos(deltaY * speed);
+  camera.position.x += deltaX * speed
+  camera.position.y += deltaY * speed
+
 }
 
 function onDoubleTouchStart(event) {
