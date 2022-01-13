@@ -41,6 +41,16 @@ let parameters = {
   lightY: 0,
   lightZ: 0,
   intensity: 1,
+  cameraPos: {
+    x: 0,
+    y: 2,
+    z: -15,
+  },
+  cameraAt: {
+    x: 0,
+    y: 0,
+    z: 0,
+  }
 }
 
 
@@ -77,7 +87,7 @@ function initControl() {
   control = new OrbitControls(camera, canvas);
   control.enableDamping = true;
   control.rotateSpeed = speed*10;
-  initTouch();
+  // initTouch();
 }
 
 function initTouch() {
@@ -94,7 +104,7 @@ function onTouchStart(event) {
 
 function onTouchMove(event) {
   let deltaY = ( event.touches[ 0 ].pageY - startY );
-  camera.position.z += ( deltaY * speed );
+  camera.position.y += ( deltaY * speed );
 }
 
 function touchListener() {
@@ -115,11 +125,11 @@ function initThree (){
 
   initControl();
 
-  // touchListener();
+  touchListener();
 
   initLight();
 
-  // initMesh();
+  initMesh();
 
 
   new RGBELoader()
@@ -165,6 +175,12 @@ function animate() {
 function update() {
   pointLight.intensity = parameters.intensity;
   ambientLight.intensity = parameters.intensity;
+  /*
+  camera.position.x = parameters.cameraPos.x;
+  camera.position.y = parameters.cameraPos.y;
+  camera.position.z = parameters.cameraPos.z;
+  camera.lookAt( parameters.cameraAt.x, parameters.cameraAt.y, parameters.cameraAt.z );
+   */
 }
 
 /*
@@ -173,8 +189,8 @@ Environment Settings
 //Camera
 function initCamera() {
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
-  camera.position.set( 1, 2, - 3 );
-  camera.lookAt( 0, 0, 0 );
+  camera.position.set(0,-1,-15);
+  camera.lookAt(0,-1.5,0);
 }
 
 //Scene
@@ -214,7 +230,7 @@ function initMesh() {
     metalness: parameters.metalness,
     roughness: parameters.roughness,
   });
-  const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 0, 0 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
+  const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 500, 500 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
   mesh.rotation.x = - Math.PI / 2;
   mesh.receiveShadow = true;
   scene.add( mesh );
@@ -229,6 +245,17 @@ function initGUI() {
   // gui.add( parameters, 'metalness', 0, 1, 0.01);
   // gui.add( parameters, 'roughness', 0, 1, 0.01 );
   gui.add( parameters, 'intensity', 0, 1, 0.01)
+  /*
+  const cameraPos = gui.addFolder('Camera Position')
+  cameraPos.add( parameters.cameraPos, 'x', -5, 5, 0.5);
+  cameraPos.add( parameters.cameraPos, 'y', -5, 5, 0.5);
+  cameraPos.add( parameters.cameraPos, 'z', -20, 20, 1);
+  const cameraAt = gui.addFolder("Camera Look At")
+  cameraAt.add( parameters.cameraAt, 'x', -5, 5, 0.05);
+  cameraAt.add( parameters.cameraAt, 'y', -5, 5, 0.05);
+  cameraAt.add( parameters.cameraAt, 'z', -5, 5, 0.05);
+   */
+
   gui.open();
 }
 
