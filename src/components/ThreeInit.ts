@@ -8,7 +8,7 @@ export function initScene (){
 
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer({antialias: true});
-    const camera = new THREE.PerspectiveCamera(60, 16 / 9, 1);
+    const camera = new THREE.PerspectiveCamera(45, 16 / 9, 1,);
     // @ts-ignore
     const control = new OrbitControls(camera, canvas);
     control.enableDamping = true;

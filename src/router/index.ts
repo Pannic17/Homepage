@@ -66,6 +66,11 @@ const routes = [
                 path: '/three/07',
                 name: '07',
                 component: () => import('../components/three/three_07.vue')
+            },
+            {
+                path: '/three/08',
+                name: '08',
+                component: () => import('../components/three/three_08.vue')
             }
         ]
     },
@@ -73,6 +78,11 @@ const routes = [
         path: '/sketch',
         name: 'sketch',
         component: () => import('../pages/project/Sketch.vue')
+    },
+    {
+        path: '/viewer',
+        name: 'viewer',
+        component: () => import('../pages/Viewer/ThreeViewer.vue')
     },
     {
         path: '/css',

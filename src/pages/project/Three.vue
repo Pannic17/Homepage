@@ -11,6 +11,7 @@
       <router-link to="/three/05" class="link">05</router-link>
       <router-link to="/three/06" class="link">06</router-link>
       <router-link to="/three/07" class="link">07</router-link>
+      <router-link to="/three/08" class="link">08</router-link>
     </div>
     <div>
       <router-view></router-view>

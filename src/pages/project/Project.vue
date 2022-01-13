@@ -21,6 +21,7 @@
       <h1>{{ $t("project.cp") }}</h1>
       <p><router-link to="three">Three.js</router-link></p>
       <p><router-link to="sketch">Sketchfab</router-link></p>
+      <p><router-link to="viewer">Test Viewer</router-link></p>
       <p>Processing</p>
     </div>
 
