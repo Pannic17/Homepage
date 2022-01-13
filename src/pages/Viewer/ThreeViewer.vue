@@ -51,6 +51,8 @@ let parameters = {
 }
 
 
+
+
 /*
 Renderer
  */
@@ -321,6 +323,14 @@ onMounted(() => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
+  }
+
+  // ############################# IOS BUG FIX
+  const IS_IOS =
+      /^(iPad|iPhone|iPod)/.test(window.navigator.platform) ||
+      (/^Mac/.test(window.navigator.platform) && window.navigator.maxTouchPoints > 1);
+  if (IS_IOS) {
+    window.createImageBitmap = undefined;
   }
   window.onbeforeunload = function (){
     gui.close();
