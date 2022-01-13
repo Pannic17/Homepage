@@ -318,14 +318,15 @@ function initGUI() {
 Mount
  */
 onMounted(() => {
+
+  // ############################# IOS BUG FIX
+  window.createImageBitmap = undefined;
   initThree();
   window.onresize = function (){
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
   }
-
-  // ############################# IOS BUG FIX
   window.createImageBitmap = undefined;
   window.onbeforeunload = function (){
     gui.close();
