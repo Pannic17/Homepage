@@ -15,7 +15,8 @@
   color: #2c3e50;
 }
 
-body,html{
+body{
+  padding: 0;
   margin: 0;
 }
 </style>

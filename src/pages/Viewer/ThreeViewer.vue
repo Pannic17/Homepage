@@ -1,6 +1,6 @@
 <template>
   <body>
-    <div id="three-canvas" style="width: 0.8vw; height: 0.45vw"></div>
+    <div id="three-canvas"></div>
   </body>
 </template>
 
@@ -145,7 +145,7 @@ function touchListener() {
     } else if (touches && touches.length >= 2) {
       onDoubleTouchStart(event);
     }
-  });
+  }, false);
 
   renderer.domElement.addEventListener( 'touchmove', function (event) {
     let touches = event.touches;
@@ -155,7 +155,7 @@ function touchListener() {
     } else if (touches && touches.length >= 2) {
       onDoubleTouchMove(event);
     }
-  })
+  }, false);
 }
 
 function initThree (){
@@ -330,10 +330,7 @@ export default {
 </script>
 
 <style scoped>
-
-
 #three-canvas{
   text-align: center;
-  margin-left: 2vw;
 }
 </style>
