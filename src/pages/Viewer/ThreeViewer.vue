@@ -330,10 +330,6 @@ export default {
 </script>
 
 <style scoped>
-body{
-  height: 100%;
-  width: 100%;
-}
 
 
 #three-canvas{
