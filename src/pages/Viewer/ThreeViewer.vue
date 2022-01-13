@@ -175,7 +175,7 @@ function initThree (){
 
   initLight();
 
-  initMesh();
+  // initMesh();
 
 
   new RGBELoader()
