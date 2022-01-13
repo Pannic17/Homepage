@@ -326,12 +326,7 @@ onMounted(() => {
   }
 
   // ############################# IOS BUG FIX
-  const IS_IOS =
-      /^(iPad|iPhone|iPod)/.test(window.navigator.platform) ||
-      (/^Mac/.test(window.navigator.platform) && window.navigator.maxTouchPoints > 1);
-  if (IS_IOS) {
-    window.createImageBitmap = undefined;
-  }
+  window.createImageBitmap = undefined;
   window.onbeforeunload = function (){
     gui.close();
   }
