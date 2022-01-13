@@ -26,7 +26,7 @@ Global Variables
 let scene, camera, renderer, canvas, obj;
 let control, gui;
 // For customized touch events
-let startRotate, startZoom, zoomDistance;
+let startXRotate, startYRotate, startZoom, zoomDistance;
 let speed = 0.001;
 let pointLight, ambientLight;
 
@@ -83,7 +83,7 @@ Controls
 function initControl() {
   control = new OrbitControls(camera, canvas);
   control.enableDamping = true;
-  control.rotateSpeed = speed*10;
+  control.rotateSpeed = speed * 1000;
   // initTouch();
 }
 
@@ -96,12 +96,15 @@ function initTouch() {
 
 // Touch Helper
 function onSingleTouchStart(event) {
-  startRotate = event.touches[0].pageY;
+  startXRotate = event.touches[1].pageX;
+  startYRotate = event.touches[0].pageY;
 }
 
 function onSingleTouchMove(event) {
-  let delta = ( event.touches[0].pageY - startRotate );
-  camera.position.y += ( delta * speed );
+  let deltaX = (event.touches[0].pageX - startXRotate);
+  let deltaY = (event.touches[0].pageY - startYRotate);
+  camera.position.x += (deltaX * speed * 100)
+  camera.position.y += (deltaY * speed * 100);
 }
 
 function onDoubleTouchStart(event) {

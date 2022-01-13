@@ -8,7 +8,7 @@
 <script setup>
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { initScene} from "../ThreeInit";
+import { initScene } from "../ThreeInit";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 let scene, camera, renderer, obj;
