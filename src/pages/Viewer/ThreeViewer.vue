@@ -139,7 +139,7 @@ function initThree (){
               if (child instanceof THREE.Mesh) {
                 console.log("###MESH")
                 roughnessMipmapper.generateMipmaps(child.material);
-                
+
               }
             })
             obj = gltf.scene.children[0];
