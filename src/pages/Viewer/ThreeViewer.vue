@@ -103,8 +103,8 @@ function onSingleTouchStart(event) {
 function onSingleTouchMove(event) {
   let deltaX = (event.touches[0].pageX - startXRotate);
   let deltaY = (event.touches[0].pageY - startYRotate);
-  camera.position.x += deltaX * speed * 100
-  camera.position.y += deltaY * speed * 300;
+  camera.position.x += 15 * Math.cos(deltaX);
+  camera.position.y += 15 * Math.cos(deltaY);
 }
 
 function onDoubleTouchStart(event) {
