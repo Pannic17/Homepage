@@ -5,20 +5,34 @@
 </template>
 
 <script setup>
+// Vue
 import * as THREE from 'three/';
-import stats from  'three/examples/jsm/libs/stats.module' //Display FPS
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 import { onMounted } from "vue";
+// Three.js
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import stats from  'three/examples/jsm/libs/stats.module' //Display FPS
 // Loader
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
+import { RGBMLoader } from 'three/examples/jsm/loaders/RGBMLoader';
+import { HDRCubeTextureLoader } from 'three/examples/jsm/loaders/HDRCubeTextureLoader.js';
 // Control
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // Material
 import { RoughnessMipmapper } from 'three/examples/jsm/utils/RoughnessMipmapper.js';
-import { HDRCubeTextureLoader } from 'three/examples/jsm/loaders/HDRCubeTextureLoader.js';
-import { RGBMLoader } from 'three/examples/jsm/loaders/RGBMLoader.js';
+// Postprocessing
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
+// SSR & SSAO
+import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass';
+import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
+import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
+// DEBUG
 import { DebugEnvironment } from 'three/examples/jsm/environments/DebugEnvironment.js';
+
+
 
 /*
 Global Variables
@@ -28,15 +42,20 @@ let control, gui;
 // For customized touch events
 let startXRotate, startYRotate, startZoom, zoomDistance;
 let speed = 0.001;
-let pointLight, ambientLight;
+// Light;
+let pointLight, ambientLight, dirLight, hemiLight, spotLight;
+// Postprocessing
+let composer;
+let ssrPass, groundGeometry, groundReflector;
 
-// HDR envMap Variables
+// Global Variable for Three.js
 let parameters = {
   envMap: 'HDR',
   ao: 0.0,
   roughness: 0.0,
   metalness: 0.0,
-  exposure: 0.0,
+  enableSSR: true,
+  darkenSSR: false,
   intensity: 1,
   cameraPos: {
     x: 0,
@@ -50,14 +69,12 @@ let parameters = {
   }
 }
 
-
-
-
-/*
-Renderer
+/**
+ * @summary Three Initiation ###########################################################################################
  */
+// Renderer
 function initRenderer() {
-  renderer = new THREE.WebGLRenderer({antialias: true});
+  renderer = new THREE.WebGLRenderer({antialias: false});
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.physicallyCorrectLights = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -65,9 +82,7 @@ function initRenderer() {
   renderer.gammaFactor = 2.2;
 }
 
-/*
-Canvas
- */
+// Canvas
 function initCanvas() {
   canvas = document.getElementById('three-canvas');
   let child = canvas.lastElementChild;
@@ -79,9 +94,7 @@ function initCanvas() {
 }
 
 
-/*
-Controls
- */
+// Controls
 function initControl() {
   control = new OrbitControls(camera, canvas);
   control.enableDamping = true;
@@ -98,7 +111,9 @@ function initTouch() {
   }
 }
 
-// Touch Helper
+/**
+ * @summary Touch Helper ###############################################################################################
+ */
 function onSingleTouchStart(event) {
   startXRotate = event.touches[0].pageX
   startYRotate = event.touches[0].pageY;
@@ -142,9 +157,6 @@ function onDoubleTouchMove(event) {
 function touchListener() {
   // renderer.domElement.addEventListener( 'touchstart', onSingleTouchStart, false );
   // renderer.domElement.addEventListener( 'touchmove', onSingleTouchMove, false );
-
-
-
   renderer.domElement.addEventListener( 'touchstart', function (event) {
     let touches = event.touches;
     // noinspection EqualityComparisonWithCoercionJS
@@ -166,6 +178,9 @@ function touchListener() {
   }, false);
 }
 
+/**
+ * @summary Three.js Main ##############################################################################################
+ */
 function initThree (){
 
 
@@ -183,32 +198,36 @@ function initThree (){
 
   initLight();
 
+  // initObject();
   // initMesh();
+
+  initPost();
+
 
 
   new RGBELoader()
     .load('piece-nb-01.hdr', function ( texture ) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
-
       scene.background = texture;
       scene.environment = texture;
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
-      const loader = new GLTFLoader();
 
+      const loader = new GLTFLoader();
       loader.load(
           '/model/maoty_gltf/1.gltf',
           function (gltf) {
             gltf.scene.traverse( function (child) {
               if (child instanceof THREE.Mesh) {
-                console.log("###MESH")
+                console.log(child.material);
                 roughnessMipmapper.generateMipmaps(child.material);
-
+                // noinspection JSUnresolvedVariable
+                // ssrPass.metalnessMap = child.material.metalnessMap;
               }
             })
-            obj = gltf.scene.children[0];
+            obj = gltf.scene;
             scene.add(obj);
-            roughnessMipmapper.dispose();
+            // roughnessMipmapper.dispose();
             animate();
           },
           function (xhr) {console.log((xhr.loaded / xhr.total * 100) + '% loaded');},
@@ -219,13 +238,20 @@ function initThree (){
   initGUI();
 }
 
+// Animation
 function animate() {
   obj.rotation.y += 0.01;
-  renderer.render(scene, camera);
+  if (parameters.enableSSR){
+    composer.render();
+    // console.log(parameters.enableSSR);
+  } else {
+    renderer.render(scene, camera);
+  }
   requestAnimationFrame(animate);
   update()
 }
 
+// Update on Change
 function update() {
   pointLight.intensity = parameters.intensity;
   ambientLight.intensity = parameters.intensity;
@@ -237,24 +263,24 @@ function update() {
    */
 }
 
-/*
-Environment Settings
+/**
+ * @summary Environment Setting ########################################################################################
  */
-//Camera
+// Camera
 function initCamera() {
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
   camera.position.set(0,-1,-15);
   camera.lookAt(0,-1.5,0);
 }
 
-//Scene
+// Scene
 function initScene() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0xa0a0a0 );
-  // scene.fog = new THREE.Fog( 0xa0a0a0, 10, 50 );
+  // scene.fog = new THREE.Fog( 0x443333, 1, 4 );
 }
 
-//Lights
+// Lights
 function initLight() {
   pointLight = new THREE.PointLight( 0xffffff, 1, 100)
   pointLight.position.set( parameters.lightX, parameters.lightY, parameters.lightZ);
@@ -263,7 +289,7 @@ function initLight() {
   ambientLight = new THREE.AmbientLight( 0xffffff, 0x444444, parameters.intensity );
   scene.add( ambientLight );
 
-  const dirLight = new THREE.DirectionalLight( 0xffffff );
+  dirLight = new THREE.DirectionalLight( 0xffffff );
   dirLight.position.set( -3, 2, 10 );
   dirLight.castShadow = true;
   dirLight.shadow.camera.top = 2;
@@ -272,33 +298,129 @@ function initLight() {
   dirLight.shadow.camera.right = 2;
   dirLight.shadow.camera.near = 0.1;
   dirLight.shadow.camera.far = 40;
-  scene.add( dirLight );
+  // scene.add( dirLight );
+
+  hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
+  // scene.add( hemiLight );
+
+  spotLight = new THREE.SpotLight();
+  spotLight.angle = Math.PI / 16;
+  spotLight.penumbra = 0.5;
+  // spotLight.castShadow = true;
+  spotLight.position.set( - 1, 1, 1 );
+  // scene.add( spotLight );
 }
 
-/*
-Mesh Setting
+
+/**
+ * @summary Custom Mesh & Object #######################################################################################
  */
+// Mesh & Plane
 function initMesh() {
   const materials = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     metalness: parameters.metalness,
     roughness: parameters.roughness,
   });
-  const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 500, 500 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
+  const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry( 500, 500 ),
+      new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
   mesh.rotation.x = - Math.PI / 2;
   mesh.receiveShadow = true;
   scene.add( mesh );
 }
 
-/*
-GUI
+// Objects
+function initObject() {
+  let boxGeometry = new THREE.BoxBufferGeometry( 2, 2, 0.5 );
+  let boxMaterial = new THREE.MeshStandardMaterial( {
+    color: 'cyan',
+  });
+  let boxMesh = new THREE.Mesh( boxGeometry, boxMaterial );
+  boxMesh.position.set( -3, 3, - 3 );
+  scene.add( boxMesh );
+  selects.push( boxMesh );
+  let sphereGeometry = new THREE.IcosahedronBufferGeometry( 2, 4 );
+  let sphereMaterial = new THREE.MeshStandardMaterial( {
+    color: 'red',
+  });
+  let sphereMesh = new THREE.Mesh( sphereGeometry, sphereMaterial );
+  sphereMesh.position.set( 3, 3, - 3 );
+  scene.add( sphereMesh );
+  selects.push( sphereMesh );
+}
+
+
+/**
+ * @summary Postprocessing #############################################################################################
+ */
+function initPost() {
+  composer = new EffectComposer( renderer );
+
+  initSSR();
+  initSSAO();
+
+  composer.addPass(ssrPass);
+  composer.addPass(new ShaderPass(GammaCorrectionShader));
+}
+
+// SSR Pass
+function initSSR() {
+  // composer = new EffectComposer( renderer );
+  ssrPass = new SSRPass({
+    renderer,
+    scene,
+    camera,
+    width: innerWidth,
+    height: innerHeight,
+    // encoding: THREE.sRGBEncoding,
+    // groundReflector: groundReflector,
+    // selects: selects
+  })
+
+  // composer.addPass(ssrPass);
+  // composer.addPass(new ShaderPass(GammaCorrectionShader));
+
+  ssrPass.thickness = 0.1;
+  ssrPass.infiniteThick = false;
+  ssrPass.maxDistance = 25;
+  ssrPass.opacity = 1;
+  ssrPass.surfDist = 0.001
+  // ssrPass.selects = selects;
+  // ssrPass.groundReflector = groundReflector;
+}
+
+// SSAO Pass
+function initSSAO() {
+
+}
+
+/**
+ * @summary Original GUI ###############################################################################################
  */
 function initGUI() {
   gui = new GUI();
 
   // gui.add( parameters, 'metalness', 0, 1, 0.01);
   // gui.add( parameters, 'roughness', 0, 1, 0.01 );
-  gui.add( parameters, 'intensity', 0, 1, 0.01)
+  const lightGUI = gui.addFolder('Light Setting');
+  lightGUI.add( parameters, 'intensity', 0, 1, 0.01);
+
+  const ssrGUI = gui.addFolder('SSR Setting');
+  ssrGUI.add( parameters, 'enableSSR').name('Enable SSR');
+  ssrGUI.add( ssrPass, 'output', {
+    'Default': SSRPass.OUTPUT.Default,
+    'SSR Only': SSRPass.OUTPUT.SSR,
+    'Beauty': SSRPass.OUTPUT.Beauty,
+    'Depth': SSRPass.OUTPUT.Depth,
+    'Normal': SSRPass.OUTPUT.Normal,
+    'Metalness': SSRPass.OUTPUT.Metalness,
+  }).onChange( function(value) {
+    ssrPass.output = parseInt( value );
+  } );
+  ssrGUI.add( ssrPass, 'maxDistance', 0, 20, 0.2).name('Max Distance');
+  ssrGUI.add( ssrPass, 'opacity', 0, 1, 0.01).name('Opacity');
+  ssrGUI.add( ssrPass, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance');
   /*
   const cameraPos = gui.addFolder('Camera Position')
   cameraPos.add( parameters.cameraPos, 'x', -5, 5, 0.5);
@@ -309,16 +431,14 @@ function initGUI() {
   cameraAt.add( parameters.cameraAt, 'y', -5, 5, 0.05);
   cameraAt.add( parameters.cameraAt, 'z', -5, 5, 0.05);
    */
-
   gui.open();
 }
 
 
-/*
-Mount
+/**
+ * @summary Vue Mount ##################################################################################################
  */
 onMounted(() => {
-
   // ############################# IOS BUG FIX
   window.createImageBitmap = undefined;
   initThree();
@@ -326,6 +446,7 @@ onMounted(() => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
+    composer.setSize( window.innerWidth, window.innerHeight );
   }
   window.createImageBitmap = undefined;
   window.onbeforeunload = function (){

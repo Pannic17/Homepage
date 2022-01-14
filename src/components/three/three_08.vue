@@ -7,99 +7,319 @@
 
 <script setup>
 import * as THREE from 'three/';
-import { onMounted } from "vue";
-import { initScene} from "../ThreeInit";
+
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
+
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import {onMounted} from "vue";
 
-let scene, camera, renderer, obj;
+const params = {
+  enableSSR: true,
+  autoRotate: true,
+  otherMeshes: true,
+  groundReflector: true,
+};
+let composer;
+let ssrPass;
+let gui;
+let stats;
+let controls;
+let camera, scene, renderer, canvas;
+const otherMeshes = [];
+let groundReflector;
+const selects = [];
 
-function initThree (){
-  scene = new THREE.Scene();
-  renderer = new THREE.WebGLRenderer({antialias: true});
-  renderer.setSize(window.innerWidth*.96, window.innerWidth*.54);
-
-
-
-  camera = new THREE.PerspectiveCamera( 45, 16/9, 1, 1000 );
-  camera.position.set( 1, 2, - 3 );
-  camera.lookAt( 0, 1, 0 );
-
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0xa0a0a0 );
-  scene.fog = new THREE.Fog( 0xa0a0a0, 10, 50 );
-
-  let canvas = document.getElementById('three-canvas');
-  const control = new OrbitControls(camera, canvas);
-  control.enableDamping = true;
-  control.rotateSpeed = 0.1;
-
+function initCanvas() {
+  canvas = document.getElementById('three-canvas');
   let child = canvas.lastElementChild;
   while (child) {
-    // @ts-ignore
     canvas.removeChild(child);
-    // @ts-ignore
     child = canvas.lastElementChild;
   }
-  // @ts-ignore
   canvas.appendChild( renderer.domElement );
-
-  initLight();
-
-  const loader = new GLTFLoader();
-  loader.load(
-      '/model/maoty_gltf/1.gltf',
-      function (gltf) {
-        obj = gltf.scene.children[0];
-        scene.add(obj);
-        animate();
-      },
-      function (xhr) {console.log((xhr.loaded / xhr.total * 100) + '% loaded');},
-      function (error) {console.log('An error happened');}
-  );
 }
 
-const animate = function () {
-  obj.rotation.y += 0.01;
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
-};
+function init() {
 
-function initLight (){
-  const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-  hemiLight.position.set( 0, 20, 0 );
+  camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 0.1, 15 );
+  camera.position.set( 0.13271600513224902, 0.3489546826045913, 0.43921296427927076 );
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0x443333 );
+  scene.fog = new THREE.Fog( 0x443333, 1, 4 );
+
+  // Ground
+  const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry( 8, 8 ),
+      new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0x101010 } )
+  );
+  plane.rotation.x = - Math.PI / 2;
+  plane.position.y = - 0.0001;
+  // plane.receiveShadow = true;
+  scene.add( plane );
+
+  // Lights
+  const hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
   scene.add( hemiLight );
 
-  const dirLight = new THREE.DirectionalLight( 0xffffff );
-  dirLight.position.set( - 3, 10, - 10 );
-  dirLight.castShadow = true;
-  dirLight.shadow.camera.top = 2;
-  dirLight.shadow.camera.bottom = - 2;
-  dirLight.shadow.camera.left = - 2;
-  dirLight.shadow.camera.right = 2;
-  dirLight.shadow.camera.near = 0.1;
-  dirLight.shadow.camera.far = 40;
-  scene.add( dirLight );
+  const spotLight = new THREE.SpotLight();
+  spotLight.angle = Math.PI / 16;
+  spotLight.penumbra = 0.5;
+  // spotLight.castShadow = true;
+  spotLight.position.set( - 1, 1, 1 );
+  scene.add( spotLight );
 
-  const mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
-  mesh.rotation.x = - Math.PI / 2;
-  mesh.receiveShadow = true;
+  const loader = new GLTFLoader();
+  loader.load( '/model/maoty_gltf/1.gltf', function ( gltf ) {
+
+    // geometry.computeVertexNormals();
+    gltf.scene.traverse(function (child){
+      if (child instanceof THREE.Mesh){
+        console.log('#Mesh')
+      }
+    })
+    let obj = gltf.scene.children[0];
+    scene.add(obj);
+    selects.push(obj);
+  } );
+
+  let geometry, material, mesh;
+
+  geometry = new THREE.BoxBufferGeometry( .05, .05, .05 );
+  material = new THREE.MeshStandardMaterial( { color: 'green' } );
+  mesh = new THREE.Mesh( geometry, material );
+  mesh.position.set( - .12, .025, .015 );
   scene.add( mesh );
+  otherMeshes.push( mesh );
+  selects.push( mesh );
+
+  geometry = new THREE.IcosahedronBufferGeometry( .025, 4 );
+  material = new THREE.MeshStandardMaterial( { color: 'cyan' } );
+  mesh = new THREE.Mesh( geometry, material );
+  mesh.position.set( - .05, .025, .08 );
+  scene.add( mesh );
+  otherMeshes.push( mesh );
+  selects.push( mesh );
+
+  geometry = new THREE.ConeBufferGeometry( .025, .05, 64 );
+  material = new THREE.MeshStandardMaterial( { color: 'yellow' } );
+  mesh = new THREE.Mesh( geometry, material );
+  mesh.position.set( - .05, .025, - .055 );
+  scene.add( mesh );
+  otherMeshes.push( mesh );
+  selects.push( mesh );
+
+  geometry = new THREE.PlaneBufferGeometry( 1, 1 );
+  groundReflector = new ReflectorForSSRPass( geometry, {
+    clipBias: 0.0003,
+    textureWidth: window.innerWidth,
+    textureHeight: window.innerHeight,
+    color: 0x888888,
+    useDepthTexture: true,
+  } );
+  groundReflector.material.depthWrite = false;
+  groundReflector.rotation.x = - Math.PI / 2;
+  groundReflector.visible = false;
+  scene.add( groundReflector );
+
+  // renderer
+  renderer = new THREE.WebGLRenderer( { antialias: false } );
+  renderer.setSize( window.innerWidth, window.innerHeight );
+
+
+  initCanvas();
+
+  //
+
+  controls = new OrbitControls( camera, canvas );
+  controls.enableDamping = true;
+  controls.target.set( 0, 0.0635, 0 );
+  controls.update();
+  controls.enabled = ! params.autoRotate;
+
+  // STATS
+
+  stats = new Stats();
+  canvas.appendChild( stats.dom );
+
+  window.addEventListener( 'resize', onWindowResize );
+
+  // composer
+
+  composer = new EffectComposer( renderer );
+  ssrPass = new SSRPass( {
+    renderer,
+    scene,
+    camera,
+    width: innerWidth,
+    height: innerHeight,
+    groundReflector: params.groundReflector ? groundReflector : null,
+    selects: params.groundReflector ? selects : null
+  } );
+
+  composer.addPass( ssrPass );
+  composer.addPass( new ShaderPass( GammaCorrectionShader ) );
+
+  // GUI
+
+  gui = new GUI( { width: 260 } );
+  gui.add( params, 'enableSSR' ).name( 'Enable SSR' );
+  gui.add( params, 'groundReflector' ).onChange( () => {
+
+    if ( params.groundReflector ) {
+
+      ssrPass.groundReflector = groundReflector,
+          ssrPass.selects = selects;
+
+    } else {
+
+      ssrPass.groundReflector = null,
+          ssrPass.selects = null;
+
+    }
+
+  } );
+  ssrPass.thickness = 0.018;
+  gui.add( ssrPass, 'thickness' ).min( 0 ).max( .1 ).step( .0001 );
+  ssrPass.infiniteThick = false;
+  gui.add( ssrPass, 'infiniteThick' );
+  gui.add( params, 'autoRotate' ).onChange( () => {
+
+    controls.enabled = ! params.autoRotate;
+
+  } );
+
+  const folder = gui.addFolder( 'more settings' );
+  folder.add( ssrPass, 'fresnel' ).onChange( ()=>{
+
+    groundReflector.fresnel = ssrPass.fresnel;
+
+  } );
+  folder.add( ssrPass, 'distanceAttenuation' ).onChange( ()=>{
+
+    groundReflector.distanceAttenuation = ssrPass.distanceAttenuation;
+
+  } );
+  ssrPass.maxDistance = .1;
+  groundReflector.maxDistance = ssrPass.maxDistance;
+  folder.add( ssrPass, 'maxDistance' ).min( 0 ).max( .5 ).step( .001 ).onChange( ()=>{
+
+    groundReflector.maxDistance = ssrPass.maxDistance;
+
+  } );
+  folder.add( params, 'otherMeshes' ).onChange( () => {
+
+    if ( params.otherMeshes ) {
+
+      otherMeshes.forEach( mesh => mesh.visible = true );
+
+    } else {
+
+      otherMeshes.forEach( mesh => mesh.visible = false );
+
+    }
+
+  } );
+  folder.add( ssrPass, 'bouncing' );
+  folder.add( ssrPass, 'output', {
+    'Default': SSRPass.OUTPUT.Default,
+    'SSR Only': SSRPass.OUTPUT.SSR,
+    'Beauty': SSRPass.OUTPUT.Beauty,
+    'Depth': SSRPass.OUTPUT.Depth,
+    'Normal': SSRPass.OUTPUT.Normal,
+    'Metalness': SSRPass.OUTPUT.Metalness,
+  } ).onChange( function ( value ) {
+
+    ssrPass.output = parseInt( value );
+
+  } );
+  ssrPass.opacity = 1;
+  groundReflector.opacity = ssrPass.opacity;
+  folder.add( ssrPass, 'opacity' ).min( 0 ).max( 1 ).onChange( ()=>{
+
+    groundReflector.opacity = ssrPass.opacity;
+
+  } );
+  folder.add( ssrPass, 'blur' );
+  // folder.open()
+  // gui.close()
+
 }
 
-onMounted(() => {
-  initThree();
-  window.onresize = function (){
-    location.reload()
-  }
+onMounted( () => {
+  init();
+  animate();
 })
 
+
+function onWindowResize() {
+
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  composer.setSize( window.innerWidth, window.innerHeight );
+  groundReflector.getRenderTarget().setSize( window.innerWidth, window.innerHeight );
+  groundReflector.resolution.set( window.innerWidth, window.innerHeight );
+
+}
+
+function animate() {
+
+  requestAnimationFrame( animate );
+
+  stats.begin();
+  render();
+  stats.end();
+
+}
+
+function render() {
+
+  if ( params.autoRotate ) {
+
+    const timer = Date.now() * 0.0003;
+
+    camera.position.x = Math.sin( timer ) * 0.5;
+    camera.position.y = 0.2135;
+    camera.position.z = Math.cos( timer ) * 0.5;
+    camera.lookAt( 0, 0.0635, 0 );
+
+  } else {
+
+    controls.update();
+
+  }
+
+  if ( params.enableSSR ) {
+
+    // TODO: groundReflector has full ground info, need use it to solve reflection gaps problem on objects when camera near ground.
+    // TODO: the normal and depth info where groundReflector reflected need to be changed.
+    composer.render();
+
+  } else {
+
+    renderer.render( scene, camera );
+
+  }
+
+}
 </script>
 
 
 <script>
 export default {
-  name: "three_03"
+  name: "three_08"
 }
 </script>
 
