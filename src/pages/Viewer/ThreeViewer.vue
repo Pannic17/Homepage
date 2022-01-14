@@ -26,7 +26,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 // SSR & SSAO
 import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass';
-import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
+import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
 import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
 // DEBUG
@@ -46,7 +46,7 @@ let speed = 0.001;
 let pointLight, ambientLight, dirLight, hemiLight, spotLight;
 // Postprocessing
 let composer;
-let ssrPass, groundGeometry, groundReflector;
+let ssrPass, saoPass, groundGeometry, groundReflector;
 
 // Global Variable for Three.js
 let parameters = {
@@ -222,7 +222,9 @@ function initThree (){
                 console.log(child.material);
                 roughnessMipmapper.generateMipmaps(child.material);
                 // noinspection JSUnresolvedVariable
+                // ssrPass.metalnessOnMaterial = child.material;
                 // ssrPass.metalnessMap = child.material.metalnessMap;
+                // ssrPass.metalnessRenderTarget.material = child.material;
               }
             })
             obj = gltf.scene;
@@ -357,29 +359,27 @@ function initObject() {
 function initPost() {
   composer = new EffectComposer( renderer );
 
-  initSSR();
-  initSSAO();
 
-  composer.addPass(ssrPass);
-  composer.addPass(new ShaderPass(GammaCorrectionShader));
+  initSSR();
+  initSAO();
+
+  let renderPass = new RenderPass( scene, camera );
+  composer.addPass( renderPass );
+  composer.addPass( saoPass );
+  // composer.addPass( ssrPass );
+  composer.addPass( new ShaderPass( GammaCorrectionShader ) );
 }
 
 // SSR Pass
 function initSSR() {
-  // composer = new EffectComposer( renderer );
   ssrPass = new SSRPass({
     renderer,
     scene,
     camera,
     width: innerWidth,
     height: innerHeight,
-    // encoding: THREE.sRGBEncoding,
-    // groundReflector: groundReflector,
-    // selects: selects
   })
 
-  // composer.addPass(ssrPass);
-  // composer.addPass(new ShaderPass(GammaCorrectionShader));
 
   ssrPass.thickness = 0.1;
   ssrPass.infiniteThick = false;
@@ -391,8 +391,14 @@ function initSSR() {
 }
 
 // SSAO Pass
-function initSSAO() {
-
+function initSAO() {
+  saoPass = new SSAOPass(
+      scene,
+      camera,
+      innerWidth,
+      innerHeight
+  );
+  saoPass.kernelRadius = 16;
 }
 
 /**
@@ -417,10 +423,25 @@ function initGUI() {
     'Metalness': SSRPass.OUTPUT.Metalness,
   }).onChange( function(value) {
     ssrPass.output = parseInt( value );
-  } );
+  });
   ssrGUI.add( ssrPass, 'maxDistance', 0, 20, 0.2).name('Max Distance');
   ssrGUI.add( ssrPass, 'opacity', 0, 1, 0.01).name('Opacity');
   ssrGUI.add( ssrPass, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance');
+
+  const saoGUI = gui.addFolder('SSAO Setting');
+  saoGUI.add( saoPass, 'output', {
+    'Default': SSAOPass.OUTPUT.Default,
+    'SSAO Only': SSAOPass.OUTPUT.SSAO,
+    'SSAO Only + Blur': SSAOPass.OUTPUT.Blur,
+    'Beauty': SSAOPass.OUTPUT.Beauty,
+    'Depth': SSAOPass.OUTPUT.Depth,
+    'Normal': SSAOPass.OUTPUT.Normal
+  }).onChange( function (value) {
+    saoPass.output = parseInt( value );
+  });
+  saoGUI.add( saoPass, 'kernelRadius', 0.01, 16, 0.01).name('Kernel Radius');
+  saoGUI.add( saoPass, 'minDistance', 0.00001, 0.0002).name('Min Distance');
+  saoGUI.add( saoPass, 'maxDistance', 0.0002, 3).name('Max Distance');
   /*
   const cameraPos = gui.addFolder('Camera Position')
   cameraPos.add( parameters.cameraPos, 'x', -5, 5, 0.5);
