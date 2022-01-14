@@ -8,8 +8,9 @@
 // Vue
 import * as THREE from 'three/';
 import { onMounted } from "vue";
+import { settingGUI, ssrGUI, ssaoGUI } from "./guiHelper";
 // Three.js
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import stats from  'three/examples/jsm/libs/stats.module' //Display FPS
 // Loader
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
@@ -29,9 +30,15 @@ import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass';
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
 import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
+import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
+// Shader
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+import { TAARenderPass } from 'three/examples/jsm/postprocessing/TAARenderPass.js';
 // DEBUG
 import { DebugEnvironment } from 'three/examples/jsm/environments/DebugEnvironment.js';
-
+import { MathUtils, Vector3, Texture } from "three";
 
 
 /*
@@ -46,16 +53,22 @@ let speed = 0.001;
 let pointLight, ambientLight, dirLight, hemiLight, spotLight;
 // Postprocessing
 let composer;
-let ssrPass, groundGeometry, groundReflector;
+let ssrPass, ssaoPass, groundGeometry, groundReflector;
+let taaPass, fxaaPass;
+let bloomPass, filmEffect;
 
 // Global Variable for Three.js
 let parameters = {
   envMap: 'HDR',
+  autoPlay: false,
   ao: 0.0,
   roughness: 0.0,
   metalness: 0.0,
   enableSSR: true,
   darkenSSR: false,
+  enableFXAA: false,
+  enableBloom: true,
+  enableFilm: true,
   intensity: 1,
   cameraPos: {
     x: 0,
@@ -66,6 +79,9 @@ let parameters = {
     x: 0,
     y: 0,
     z: 0,
+  },
+  maps: {
+    arm: null,
   }
 }
 
@@ -74,8 +90,13 @@ let parameters = {
  */
 // Renderer
 function initRenderer() {
-  renderer = new THREE.WebGLRenderer({antialias: false});
+  renderer = new THREE.WebGLRenderer({antialias: true});
   renderer.setSize(window.innerWidth, window.innerHeight);
+  /**
+   * @function Tone Mapping
+   * @function Gamma
+   * UNEXPOSED -> Alter
+   */
   renderer.physicallyCorrectLights = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.gammaOutput = true;
@@ -198,24 +219,26 @@ function initThree (){
 
   initLight();
 
+  initShadow();
+
   // initObject();
-  // initMesh();
+  initMesh();
 
   initPost();
 
 
 
   new RGBELoader()
-    .load('piece-nb-01.hdr', function ( texture ) {
+    .load('/hdr/small.hdr', function ( texture ) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       scene.background = texture;
-      scene.environment = texture;
+      // scene.environment = texture;
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
 
       const loader = new GLTFLoader();
       loader.load(
-          '/model/maoty_gltf/1.gltf',
+          '/model/cat_gltf/1.gltf',
           function (gltf) {
             gltf.scene.traverse( function (child) {
               if (child instanceof THREE.Mesh) {
@@ -223,11 +246,27 @@ function initThree (){
                 roughnessMipmapper.generateMipmaps(child.material);
                 // noinspection JSUnresolvedVariable
                 // ssrPass.metalnessMap = child.material.metalnessMap;
+                // child.material.envMap = camera.renderTarget.texture;
+                child.castShadow = true;
+                child.receiveShadow = true;
+                // noinspection JSUnresolvedVariable
+                /**
+                 * @function View ARM
+                 * DISCARD -> RECONSTRUCT
+                 * realized in reload
+                parameters.maps.arm = child.material.aoMap;
+                let viewMaterial = new THREE.MeshPhongMaterial({
+                  color: 0xff0000,
+                  map: parameters.maps.arm
+                })
+                let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
+                scene.add(viewMesh);
+                 */
               }
             })
             obj = gltf.scene;
             scene.add(obj);
-            // roughnessMipmapper.dispose();
+            roughnessMipmapper.dispose();
             animate();
           },
           function (xhr) {console.log((xhr.loaded / xhr.total * 100) + '% loaded');},
@@ -238,9 +277,14 @@ function initThree (){
   initGUI();
 }
 
+/**
+ * @summary Animation ##################################################################################################
+ */
 // Animation
 function animate() {
-  obj.rotation.y += 0.01;
+  if (parameters.autoPlay){
+    obj.rotation.y += 0.01;
+  }
   if (parameters.enableSSR){
     composer.render();
     // console.log(parameters.enableSSR);
@@ -255,7 +299,9 @@ function animate() {
 function update() {
   pointLight.intensity = parameters.intensity;
   ambientLight.intensity = parameters.intensity;
-  /*
+  /**
+   * @function Toggle Camera
+   * UNEXPOSED -> Debugger
   camera.position.x = parameters.cameraPos.x;
   camera.position.y = parameters.cameraPos.y;
   camera.position.z = parameters.cameraPos.z;
@@ -287,18 +333,23 @@ function initLight() {
   // scene.add(pointLight);
 
   ambientLight = new THREE.AmbientLight( 0xffffff, 0x444444, parameters.intensity );
-  scene.add( ambientLight );
+  // scene.add( ambientLight );
 
   dirLight = new THREE.DirectionalLight( 0xffffff );
-  dirLight.position.set( -3, 2, 10 );
+  dirLight.position.set( 3, 12, 17 );
   dirLight.castShadow = true;
-  dirLight.shadow.camera.top = 2;
-  dirLight.shadow.camera.bottom = - 2;
-  dirLight.shadow.camera.left = - 2;
-  dirLight.shadow.camera.right = 2;
   dirLight.shadow.camera.near = 0.1;
-  dirLight.shadow.camera.far = 40;
-  // scene.add( dirLight );
+  dirLight.shadow.camera.far = 500;
+  dirLight.shadow.camera.right = 17;
+  dirLight.shadow.camera.left = - 17;
+  dirLight.shadow.camera.top	= 17;
+  dirLight.shadow.camera.bottom = - 17;
+  dirLight.shadow.mapSize.width = 512;
+  dirLight.shadow.mapSize.height = 512;
+  dirLight.shadow.radius = 4;
+  dirLight.shadow.bias = - 0.0005;
+  dirLight.shadow.blurSamples = 8;
+  scene.add( dirLight );
 
   hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
   // scene.add( hemiLight );
@@ -311,6 +362,11 @@ function initLight() {
   // scene.add( spotLight );
 }
 
+// Shadow
+function initShadow() {
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.VSMShadowMap;
+}
 
 /**
  * @summary Custom Mesh & Object #######################################################################################
@@ -322,12 +378,19 @@ function initMesh() {
     metalness: parameters.metalness,
     roughness: parameters.roughness,
   });
-  const mesh = new THREE.Mesh(
+  const ground = new THREE.Mesh(
       new THREE.PlaneGeometry( 500, 500 ),
-      new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
-  mesh.rotation.x = - Math.PI / 2;
-  mesh.receiveShadow = true;
-  scene.add( mesh );
+      new THREE.MeshPhongMaterial( {
+        color: 0xaaaaaa,
+        shininess: 0,
+        specular: 0x222222
+      })
+  );
+  ground.rotation.x = - Math.PI / 2;
+  ground.position.y = -5;
+  ground.castShadow = true;
+  ground.receiveShadow = true;
+  scene.add( ground );
 }
 
 // Objects
@@ -358,10 +421,29 @@ function initPost() {
   composer = new EffectComposer( renderer );
 
   initSSR();
+
+  let renderPass = new RenderPass( scene, camera );
+
   initSSAO();
 
-  composer.addPass(ssrPass);
+  // composer.addPass( ssaoPass );
+  composer.addPass( renderPass );
+  // composer.addPass( ssrPass );
+  composer.addPass( ssaoPass );
   composer.addPass(new ShaderPass(GammaCorrectionShader));
+
+  // initTAA()
+  initFXAA();
+  // composer.addPass( taaPass );
+  // composer.addPass( fxaaPass );
+
+  /**
+   * @function Bloom Effect
+   * UNEXPOSED -> Add & Alter
+  #### Bloom Effect ####
+  bloomPass = new UnrealBloomPass( new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 4, 1);
+  composer.addPass( bloomPass );
+   */
 }
 
 // SSR Pass
@@ -374,26 +456,63 @@ function initSSR() {
     width: innerWidth,
     height: innerHeight,
     // encoding: THREE.sRGBEncoding,
-    // groundReflector: groundReflector,
-    // selects: selects
   })
-
-  // composer.addPass(ssrPass);
-  // composer.addPass(new ShaderPass(GammaCorrectionShader));
 
   ssrPass.thickness = 0.1;
   ssrPass.infiniteThick = false;
   ssrPass.maxDistance = 25;
   ssrPass.opacity = 1;
-  ssrPass.surfDist = 0.001
-  // ssrPass.selects = selects;
-  // ssrPass.groundReflector = groundReflector;
+  ssrPass.surfDist = 0.001;
 }
 
 // SSAO Pass
 function initSSAO() {
+  ssaoPass = new SSAOPass(
+      scene,
+      camera,
+      innerWidth,
+      innerHeight
+  )
+  ssaoPass.kernelRadius = 0.75;
+  ssaoPass.minDistance = 0.00001;
 
+  let customKernelSize = 32;
+
+  ssaoPass.ssaoMaterial.defines[ 'KERNEL_SIZE' ] = customKernelSize;
+  ssaoPass.kernelSize = customKernelSize;
+
+  // Override Internal Kernel
+  for ( let i = 0; i < (customKernelSize-32); i ++ ) {
+
+    const sample = new Vector3();
+    sample.x = ( Math.random() * 2 ) - 1;
+    sample.y = ( Math.random() * 2 ) - 1;
+    sample.z = Math.random();
+
+    sample.normalize();
+
+    let scale = i / (customKernelSize-32);
+    scale = MathUtils.lerp( 0.1, 1, scale * scale );
+    sample.multiplyScalar( scale );
+
+    // ssaoPass.ssaoMaterial.uniforms[ 'kernel' ].value.push(sample);
+
+  }
+
+  console.log(ssaoPass.kernelSize)
+  console.log(ssaoPass.kernel);
 }
+
+function initTAA() {
+  taaPass = new TAARenderPass( scene, camera);
+  taaPass.unbiased = false;
+  taaPass.sampleLevel = 1;
+}
+
+function initFXAA() {
+  fxaaPass = new ShaderPass( FXAAShader );
+}
+
 
 /**
  * @summary Original GUI ###############################################################################################
@@ -403,25 +522,18 @@ function initGUI() {
 
   // gui.add( parameters, 'metalness', 0, 1, 0.01);
   // gui.add( parameters, 'roughness', 0, 1, 0.01 );
-  const lightGUI = gui.addFolder('Light Setting');
-  lightGUI.add( parameters, 'intensity', 0, 1, 0.01);
+  const controlGUI = gui.addFolder('Control');
+  controlGUI.add( parameters, 'autoPlay').name('Auto Play');
 
-  const ssrGUI = gui.addFolder('SSR Setting');
-  ssrGUI.add( parameters, 'enableSSR').name('Enable SSR');
-  ssrGUI.add( ssrPass, 'output', {
-    'Default': SSRPass.OUTPUT.Default,
-    'SSR Only': SSRPass.OUTPUT.SSR,
-    'Beauty': SSRPass.OUTPUT.Beauty,
-    'Depth': SSRPass.OUTPUT.Depth,
-    'Normal': SSRPass.OUTPUT.Normal,
-    'Metalness': SSRPass.OUTPUT.Metalness,
-  }).onChange( function(value) {
-    ssrPass.output = parseInt( value );
-  } );
-  ssrGUI.add( ssrPass, 'maxDistance', 0, 20, 0.2).name('Max Distance');
-  ssrGUI.add( ssrPass, 'opacity', 0, 1, 0.01).name('Opacity');
-  ssrGUI.add( ssrPass, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance');
-  /*
+  settingGUI(gui, parameters, fxaaPass);
+
+  ssrGUI(gui, parameters, ssrPass);
+
+  ssaoGUI(gui, parameters, ssaoPass);
+
+  /**
+   * @function Toggle Camera
+   * UNEXPOSED -> Debugger
   const cameraPos = gui.addFolder('Camera Position')
   cameraPos.add( parameters.cameraPos, 'x', -5, 5, 0.5);
   cameraPos.add( parameters.cameraPos, 'y', -5, 5, 0.5);
@@ -439,8 +551,7 @@ function initGUI() {
  * @summary Vue Mount ##################################################################################################
  */
 onMounted(() => {
-  // ############################# IOS BUG FIX
-  window.createImageBitmap = undefined;
+  window.createImageBitmap = undefined; // Fix iOS Bug
   initThree();
   window.onresize = function (){
     camera.aspect = window.innerWidth / window.innerHeight;
