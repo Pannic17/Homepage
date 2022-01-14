@@ -6,7 +6,7 @@ export function addPlane( scene: any ) {
         new THREE.MeshPhongMaterial( {
             color: 0xaaaaaa,
             shininess: 0,
-            specular: 0x222222
+            specular: 0x111111
         })
     );
     ground.rotation.x = - Math.PI / 2;

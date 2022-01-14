@@ -6,6 +6,7 @@ import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
 export function settingGUI( gui: any, parameters: any, fxaaPass: any ) {
     const settingGUI = gui.addFolder('Settings');
     // settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
+    settingGUI.add( parameters, 'exposure', 0, 2, 0.01).name('HDR Exposure');
     settingGUI.add( parameters, 'enableFXAA').name('Enable FXAA').onChange(function (){
         fxaaPass.enabled = parameters.enableFXAA;
     });

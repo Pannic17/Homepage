@@ -13,7 +13,7 @@ import { addPlane } from "./debugHelper";
 // import { onSingleTouchStart, onSingleTouchMove, onDoubleTouchStart, onDoubleTouchMove} from "./touchHelper";
 // Three.js
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
-import stats from  'three/examples/jsm/libs/stats.module' //Display FPS
+import Stats from  'three/examples/jsm/libs/stats.module' //Display FPS
 // Loader
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
@@ -47,7 +47,7 @@ import { MathUtils, Vector3, Texture } from "three";
 Global Variables
  */
 let scene, camera, renderer, canvas, obj;
-let control, gui;
+let control, gui, stats;
 // For customized touch events
 let startX, startY, startZoom, startDist;
 let speed = 0.001;
@@ -63,15 +63,12 @@ let bloomPass, filmEffect;
 let parameters = {
   envMap: 'HDR',
   autoPlay: false,
-  ao: 0.0,
-  roughness: 0.0,
-  metalness: 0.0,
   enableSSR: true,
   darkenSSR: false,
   enableFXAA: false,
   enableBloom: true,
   enableFilm: true,
-  intensity: 1,
+  exposure: 1.0,
   cameraPos: {
     x: 0,
     y: 2,
@@ -131,6 +128,8 @@ function initCanvas() {
     child = canvas.lastElementChild;
   }
   canvas.appendChild( renderer.domElement );
+  stats = new Stats();
+  canvas.appendChild( stats.dom );
 }
 
 
@@ -185,10 +184,11 @@ function initThree (){
 
 
   new RGBELoader()
-    .load('/hdr/xmas.hdr', function ( texture ) {
+    .load('/hdr/club.hdr', function ( texture ) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       scene.background = texture;
       scene.environment = texture;
+      scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
 
@@ -249,10 +249,13 @@ function animate() {
   }
   requestAnimationFrame(animate);
   update()
+  stats.update();
 }
 
 // Update on Change
 function update() {
+  renderer.toneMappingExposure = parameters.exposure
+
   dirLight.position.set( parameters.light.x, parameters.light.y, parameters.light.z );
   dirLight.intensity = parameters.light.intensity;
   dirLight.castShadow = true;
