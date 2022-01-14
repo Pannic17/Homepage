@@ -5,10 +5,11 @@ export function addPlane( scene: any ) {
         new THREE.PlaneGeometry( 500, 500 ),
         new THREE.MeshPhongMaterial( {
             color: 0xaaaaaa,
-            shininess: 0,
-            specular: 0x111111
+            shininess: 150,
+            specular: 0x111111,
         })
     );
+    ground.scale.multiplyScalar(3);
     ground.rotation.x = - Math.PI / 2;
     ground.position.y = -5;
     ground.castShadow = true;

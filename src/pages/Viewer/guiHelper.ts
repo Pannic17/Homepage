@@ -48,6 +48,23 @@ export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
     ssaoGUI.add( ssaoPass, 'minDistance', 0.0002, 3).name('Max Distance');
 }
 
-export function lightGUI( gui: any ){
+export function lightGUI( gui: any, parameters: any ) {
+    const lightGUI = gui.addFolder('Light Setting');
+    lightGUI.add( parameters.light, 'intensity', 0, 10, 0.01);
+    lightGUI.add( parameters.light, 'x', -5, 5, 0.01);
+    lightGUI.add( parameters.light, 'y', -20, 20, 0.01);
+    lightGUI.add( parameters.light, 'z', -20, 20, 0.01);
+    lightGUI.add( parameters.light.shadow, 'near', 0, 0.5, 0.001);
+    lightGUI.add( parameters.light.shadow, 'far', 10, 500, 1);
+    lightGUI.add( parameters.light.shadow, 'radius', 1, 10, 0.01);
+    lightGUI.add( parameters.light.shadow, 'blurSamples', 1, 10, 1);
+}
 
+export function lightUpdate( dirLight: any, parameters: any ) {
+    dirLight.position.set( parameters.light.x, parameters.light.y, parameters.light.z );
+    dirLight.intensity = parameters.light.intensity;
+    dirLight.shadow.camera.near = parameters.light.shadow.near;
+    dirLight.shadow.camera.far = parameters.light.shadow.far;
+    dirLight.shadow.radius = parameters.light.shadow.radius;
+    dirLight.shadow.blurSamples = parameters.light.shadow.blurSamples;
 }

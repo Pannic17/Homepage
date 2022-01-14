@@ -8,7 +8,7 @@
 // Vue
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import { settingGUI, ssrGUI, ssaoGUI } from "./guiHelper";
+import {settingGUI, ssrGUI, ssaoGUI, lightGUI, lightUpdate} from "./guiHelper";
 import { addPlane } from "./debugHelper";
 // import { onSingleTouchStart, onSingleTouchMove, onDoubleTouchStart, onDoubleTouchMove} from "./touchHelper";
 // Three.js
@@ -81,6 +81,7 @@ let parameters = {
   },
   maps: {
     arm: null,
+    env: null,
   },
   light: {
     intensity: 1,
@@ -90,10 +91,6 @@ let parameters = {
     shadow: {
       near: 0.1,
       far: 500,
-      right: 17,
-      left: -17,
-      top: 17,
-      bottom: -17,
       radius: 4,
       bias: -0.0005,
       blurSamples: 8
@@ -176,7 +173,7 @@ function initThree (){
 
   // initObject();
   // initMesh();
-  addPlane(scene);
+  addPlane( scene );
 
 
   initPost();
@@ -254,22 +251,9 @@ function animate() {
 
 // Update on Change
 function update() {
-  renderer.toneMappingExposure = parameters.exposure
+  renderer.toneMappingExposure = parameters.exposure;
 
-  dirLight.position.set( parameters.light.x, parameters.light.y, parameters.light.z );
-  dirLight.intensity = parameters.light.intensity;
-  dirLight.castShadow = true;
-  dirLight.shadow.camera.near = parameters.light.shadow.near;
-  dirLight.shadow.camera.far = parameters.light.shadow.far;
-  dirLight.shadow.camera.right = parameters.light.shadow.right;
-  dirLight.shadow.camera.left = - parameters.light.shadow.left;
-  dirLight.shadow.camera.top	= parameters.light.shadow.top;
-  dirLight.shadow.camera.bottom = parameters.light.shadow.bottom;
-  dirLight.shadow.mapSize.width = 512;
-  dirLight.shadow.mapSize.height = 512;
-  dirLight.shadow.radius = parameters.light.shadow.radius;
-  dirLight.shadow.bias = - 0.0005;
-  dirLight.shadow.blurSamples = parameters.light.shadow.blurSamples;
+  lightUpdate( dirLight, parameters );
   /**
    * @function Toggle Camera
    * UNEXPOSED -> Debugger
@@ -299,27 +283,23 @@ function initScene() {
 
 // Lights
 function initLight() {
-  pointLight = new THREE.PointLight( 0xffffff, 1, 100)
-  pointLight.position.set( parameters.lightX, parameters.lightY, parameters.lightZ);
+  pointLight = new THREE.PointLight( 0xffffff, 40, 100)
+  pointLight.position.set( 3, 3, 3);
   // scene.add(pointLight);
 
   ambientLight = new THREE.AmbientLight( 0xffffff, 0x444444, parameters.intensity );
   // scene.add( ambientLight );
 
   dirLight = new THREE.DirectionalLight( 0xffffff );
-  dirLight.position.set( 3, 12, 17 );
+  lightUpdate( dirLight, parameters );
   dirLight.castShadow = true;
-  dirLight.shadow.camera.near = 0.1;
-  dirLight.shadow.camera.far = 500;
   dirLight.shadow.camera.right = 17;
   dirLight.shadow.camera.left = - 17;
   dirLight.shadow.camera.top	= 17;
   dirLight.shadow.camera.bottom = - 17;
   dirLight.shadow.mapSize.width = 512;
   dirLight.shadow.mapSize.height = 512;
-  dirLight.shadow.radius = 4;
   dirLight.shadow.bias = - 0.0005;
-  dirLight.shadow.blurSamples = 8;
   scene.add( dirLight );
 
   hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
@@ -451,24 +431,11 @@ function initGUI() {
 
   settingGUI(gui, parameters, fxaaPass);
 
+  lightGUI(gui, parameters);
+
   // ssrGUI(gui, parameters, ssrPass);
 
   // ssaoGUI(gui, parameters, ssaoPass);
-
-  const lightGUI = gui.addFolder('Light Setting');
-  lightGUI.add( parameters.light, 'intensity', 0, 1, 0.01);
-  lightGUI.add( parameters.light, 'x', -5, 5, 0.01);
-  lightGUI.add( parameters.light, 'y', -20, 20, 0.01);
-  lightGUI.add( parameters.light, 'z', -20, 20, 0.01);
-  lightGUI.add( parameters.light.shadow, 'near', 0, 0.5, 0.001);
-  lightGUI.add( parameters.light.shadow, 'far', 10, 500, 1);
-  lightGUI.add( parameters.light.shadow, 'right', -10, 50, 0.01);
-  lightGUI.add( parameters.light.shadow, 'left', -50, 10, 0.01);
-  lightGUI.add( parameters.light.shadow, 'top', -10, 50, 0.01);
-  lightGUI.add( parameters.light.shadow, 'bottom', -50, 10, 0.01);
-  lightGUI.add( parameters.light.shadow, 'radius', 1, 10, 0.01);
-  lightGUI.add( parameters.light.shadow, 'blurSamples', 1, 10, 1);
-
 
   /**
    * @function Toggle Camera
