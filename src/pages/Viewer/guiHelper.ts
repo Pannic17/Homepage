@@ -3,7 +3,7 @@
 import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass';
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
 
-export function settingGUI(gui: any, parameters: any, fxaaPass: any) {
+export function settingGUI( gui: any, parameters: any, fxaaPass: any ) {
     const settingGUI = gui.addFolder('Settings');
     settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
     settingGUI.add( parameters, 'enableFXAA').name('Enable FXAA').onChange(function (){
@@ -12,7 +12,7 @@ export function settingGUI(gui: any, parameters: any, fxaaPass: any) {
     settingGUI.add( parameters, 'enableSSR').name('Enable Postprocssing');
 }
 
-export function ssrGUI(gui: any, parameters: any, ssrPass: any) {
+export function ssrGUI( gui: any, parameters: any, ssrPass: any ) {
     const ssrGUI = gui.addFolder('SSR Setting');
 
     ssrGUI.add( ssrPass, 'output', {
@@ -30,7 +30,7 @@ export function ssrGUI(gui: any, parameters: any, ssrPass: any) {
     ssrGUI.add( ssrPass, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance');
 }
 
-export function ssaoGUI(gui: any, parameters: any, ssaoPass: any) {
+export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
     const ssaoGUI = gui.addFolder('SSAO Setting');
     ssaoGUI.add( ssaoPass, 'output', {
         'Default': SSAOPass.OUTPUT.Default,

@@ -9,6 +9,8 @@
 import * as THREE from 'three/';
 import { onMounted } from "vue";
 import { settingGUI, ssrGUI, ssaoGUI } from "./guiHelper";
+import { addPlane } from "./debugHelper";
+// import { onSingleTouchStart, onSingleTouchMove, onDoubleTouchStart, onDoubleTouchMove} from "./touchHelper";
 // Three.js
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import stats from  'three/examples/jsm/libs/stats.module' //Display FPS
@@ -47,7 +49,7 @@ Global Variables
 let scene, camera, renderer, canvas, obj;
 let control, gui;
 // For customized touch events
-let startXRotate, startYRotate, startZoom, zoomDistance;
+let startX, startY, startZoom, startDist;
 let speed = 0.001;
 // Light;
 let pointLight, ambientLight, dirLight, hemiLight, spotLight;
@@ -119,10 +121,10 @@ function initCanvas() {
 function initControl() {
   control = new OrbitControls(camera, canvas);
   control.enableDamping = true;
-  control.rotateSpeed = speed * 1000;
+  control.rotateSpeed = speed*1000;
   control.maxDistance = 100;
   control.target = new THREE.Vector3(0, 0, 0);
-  // initTouch();
+  initTouch();
 }
 
 function initTouch() {
@@ -132,72 +134,7 @@ function initTouch() {
   }
 }
 
-/**
- * @summary Touch Helper ###############################################################################################
- */
-function onSingleTouchStart(event) {
-  startXRotate = event.touches[0].pageX
-  startYRotate = event.touches[0].pageY;
-}
 
-function onSingleTouchMove(event) {
-  let deltaX = (event.touches[0].pageX - startXRotate);
-  let deltaY = (event.touches[0].pageY - startYRotate);
-  // camera.position.x += deltaX * speed
-  camera.position.y += deltaY * speed
-
-}
-
-function onDoubleTouchStart(event) {
-  startZoom = event.touches[0].pageY;
-  zoomDistance = Math.abs(event.touches[0].pageY - event.touches[1].pageY);
-}
-
-function onDoubleTouchMove(event) {
-  let offsetZoom = Math.abs(event.touches[0].pageY - startZoom);
-  let deltaDistance = Math.abs(event.touches[0].pageY - event.touches[1].pageY) - zoomDistance;
-  if (deltaDistance > 0){
-    // zoom in
-    let delta = offsetZoom * speed;
-    if (camera.position.z >= -1 || (camera.position.z + delta) >= -1 ) {
-      camera.position.z = -1
-    } else {
-      camera.position.z += delta;
-    }
-  } else if (deltaDistance < 0){
-    // zoom out
-    let delta = offsetZoom * speed;
-    if (camera.position.z <= -100 || (camera.position.z - delta) <= -100) {
-      camera.position.z = -100
-    } else {
-      camera.position.z -= delta;
-    }
-  }
-}
-
-function touchListener() {
-  // renderer.domElement.addEventListener( 'touchstart', onSingleTouchStart, false );
-  // renderer.domElement.addEventListener( 'touchmove', onSingleTouchMove, false );
-  renderer.domElement.addEventListener( 'touchstart', function (event) {
-    let touches = event.touches;
-    // noinspection EqualityComparisonWithCoercionJS
-    if (touches && touches.length == 1) {
-      onSingleTouchStart(event);
-    } else if (touches && touches.length >= 2) {
-      onDoubleTouchStart(event);
-    }
-  }, false);
-
-  renderer.domElement.addEventListener( 'touchmove', function (event) {
-    let touches = event.touches;
-    // noinspection EqualityComparisonWithCoercionJS
-    if (touches && touches.length == 1) {
-      onSingleTouchMove(event);
-    } else if (touches && touches.length >= 2) {
-      onDoubleTouchMove(event);
-    }
-  }, false);
-}
 
 /**
  * @summary Three.js Main ##############################################################################################
@@ -215,30 +152,33 @@ function initThree (){
 
   initControl();
 
-  touchListener();
+  // touchListener();
+  // touchListenerHelper()
 
   initLight();
 
   initShadow();
 
   // initObject();
-  initMesh();
+  // initMesh();
+  addPlane(scene);
+
 
   initPost();
 
 
 
   new RGBELoader()
-    .load('/hdr/small.hdr', function ( texture ) {
+    .load('/hdr/xmas.hdr', function ( texture ) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       scene.background = texture;
-      // scene.environment = texture;
+      scene.environment = texture;
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
 
       const loader = new GLTFLoader();
       loader.load(
-          '/model/cat_gltf/1.gltf',
+          '/model/owl_gltf/1.gltf',
           function (gltf) {
             gltf.scene.traverse( function (child) {
               if (child instanceof THREE.Mesh) {
@@ -368,51 +308,6 @@ function initShadow() {
   renderer.shadowMap.type = THREE.VSMShadowMap;
 }
 
-/**
- * @summary Custom Mesh & Object #######################################################################################
- */
-// Mesh & Plane
-function initMesh() {
-  const materials = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    metalness: parameters.metalness,
-    roughness: parameters.roughness,
-  });
-  const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry( 500, 500 ),
-      new THREE.MeshPhongMaterial( {
-        color: 0xaaaaaa,
-        shininess: 0,
-        specular: 0x222222
-      })
-  );
-  ground.rotation.x = - Math.PI / 2;
-  ground.position.y = -5;
-  ground.castShadow = true;
-  ground.receiveShadow = true;
-  scene.add( ground );
-}
-
-// Objects
-function initObject() {
-  let boxGeometry = new THREE.BoxBufferGeometry( 2, 2, 0.5 );
-  let boxMaterial = new THREE.MeshStandardMaterial( {
-    color: 'cyan',
-  });
-  let boxMesh = new THREE.Mesh( boxGeometry, boxMaterial );
-  boxMesh.position.set( -3, 3, - 3 );
-  scene.add( boxMesh );
-  selects.push( boxMesh );
-  let sphereGeometry = new THREE.IcosahedronBufferGeometry( 2, 4 );
-  let sphereMaterial = new THREE.MeshStandardMaterial( {
-    color: 'red',
-  });
-  let sphereMesh = new THREE.Mesh( sphereGeometry, sphereMaterial );
-  sphereMesh.position.set( 3, 3, - 3 );
-  scene.add( sphereMesh );
-  selects.push( sphereMesh );
-}
-
 
 /**
  * @summary Postprocessing #############################################################################################
@@ -520,14 +415,12 @@ function initFXAA() {
 function initGUI() {
   gui = new GUI();
 
-  // gui.add( parameters, 'metalness', 0, 1, 0.01);
-  // gui.add( parameters, 'roughness', 0, 1, 0.01 );
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
 
   settingGUI(gui, parameters, fxaaPass);
 
-  ssrGUI(gui, parameters, ssrPass);
+  // ssrGUI(gui, parameters, ssrPass);
 
   ssaoGUI(gui, parameters, ssaoPass);
 
