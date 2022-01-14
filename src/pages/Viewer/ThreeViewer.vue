@@ -84,6 +84,23 @@ let parameters = {
   },
   maps: {
     arm: null,
+  },
+  light: {
+    intensity: 1,
+    x: 3,
+    y: 12,
+    z: 17,
+    shadow: {
+      near: 0.1,
+      far: 500,
+      right: 17,
+      left: -17,
+      top: 17,
+      bottom: -17,
+      radius: 4,
+      bias: -0.0005,
+      blurSamples: 8
+    }
   }
 }
 
@@ -133,7 +150,6 @@ function initTouch() {
     TWO: THREE.TOUCH.DOLLY_PAN
   }
 }
-
 
 
 /**
@@ -237,8 +253,20 @@ function animate() {
 
 // Update on Change
 function update() {
-  pointLight.intensity = parameters.intensity;
-  ambientLight.intensity = parameters.intensity;
+  dirLight.position.set( parameters.light.x, parameters.light.y, parameters.light.z );
+  dirLight.intensity = parameters.light.intensity;
+  dirLight.castShadow = true;
+  dirLight.shadow.camera.near = parameters.light.shadow.near;
+  dirLight.shadow.camera.far = parameters.light.shadow.far;
+  dirLight.shadow.camera.right = parameters.light.shadow.right;
+  dirLight.shadow.camera.left = - parameters.light.shadow.left;
+  dirLight.shadow.camera.top	= parameters.light.shadow.top;
+  dirLight.shadow.camera.bottom = parameters.light.shadow.bottom;
+  dirLight.shadow.mapSize.width = 512;
+  dirLight.shadow.mapSize.height = 512;
+  dirLight.shadow.radius = parameters.light.shadow.radius;
+  dirLight.shadow.bias = - 0.0005;
+  dirLight.shadow.blurSamples = parameters.light.shadow.blurSamples;
   /**
    * @function Toggle Camera
    * UNEXPOSED -> Debugger
@@ -422,7 +450,22 @@ function initGUI() {
 
   // ssrGUI(gui, parameters, ssrPass);
 
-  ssaoGUI(gui, parameters, ssaoPass);
+  // ssaoGUI(gui, parameters, ssaoPass);
+
+  const lightGUI = gui.addFolder('Light Setting');
+  lightGUI.add( parameters.light, 'intensity', 0, 1, 0.01);
+  lightGUI.add( parameters.light, 'x', -5, 5, 0.01);
+  lightGUI.add( parameters.light, 'y', -20, 20, 0.01);
+  lightGUI.add( parameters.light, 'z', -20, 20, 0.01);
+  lightGUI.add( parameters.light.shadow, 'near', 0, 0.5, 0.001);
+  lightGUI.add( parameters.light.shadow, 'far', 10, 500, 1);
+  lightGUI.add( parameters.light.shadow, 'right', -10, 50, 0.01);
+  lightGUI.add( parameters.light.shadow, 'left', -50, 10, 0.01);
+  lightGUI.add( parameters.light.shadow, 'top', -10, 50, 0.01);
+  lightGUI.add( parameters.light.shadow, 'bottom', -50, 10, 0.01);
+  lightGUI.add( parameters.light.shadow, 'radius', 1, 10, 0.01);
+  lightGUI.add( parameters.light.shadow, 'blurSamples', 1, 10, 1);
+
 
   /**
    * @function Toggle Camera

@@ -5,7 +5,7 @@ import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
 
 export function settingGUI( gui: any, parameters: any, fxaaPass: any ) {
     const settingGUI = gui.addFolder('Settings');
-    settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
+    // settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
     settingGUI.add( parameters, 'enableFXAA').name('Enable FXAA').onChange(function (){
         fxaaPass.enabled = parameters.enableFXAA;
     });
@@ -45,4 +45,8 @@ export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
     ssaoGUI.add( ssaoPass, 'kernelRadius', 0, 5, 0.001).name('Kernel Radius');
     ssaoGUI.add( ssaoPass, 'minDistance', 0.00001, 0.0002).name('Min Distance');
     ssaoGUI.add( ssaoPass, 'minDistance', 0.0002, 3).name('Max Distance');
+}
+
+export function lightGUI( gui: any ){
+
 }
