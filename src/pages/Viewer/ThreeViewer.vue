@@ -8,7 +8,17 @@
 // Vue
 import * as THREE from 'three/';
 import { onMounted } from "vue";
-import {settingGUI, ssrGUI, ssaoGUI, lightGUI, lightUpdate} from "./guiHelper";
+import {
+  settingGUI,
+  ssrGUI,
+  ssaoGUI,
+  lightGUI,
+  lightUpdate,
+  lightLog,
+  cameraGUI,
+  cameraUpdate,
+  cameraLog
+} from "./guiHelper";
 import { addPlane } from "./debugHelper";
 // import { onSingleTouchStart, onSingleTouchMove, onDoubleTouchStart, onDoubleTouchMove} from "./touchHelper";
 // Three.js
@@ -69,15 +79,18 @@ let parameters = {
   enableBloom: true,
   enableFilm: true,
   exposure: 1.0,
-  cameraPos: {
-    x: 0,
-    y: 2,
-    z: -15,
-  },
-  cameraAt: {
-    x: 0,
-    y: 0,
-    z: 0,
+  camera: {
+    position: {
+      x: 0,
+      y: 2,
+      z: -15,
+    },
+    lookAt: {
+      x: 0,
+      y: -1.5,
+      z: 0,
+    }
+
   },
   maps: {
     arm: null,
@@ -85,9 +98,9 @@ let parameters = {
   },
   light: {
     intensity: 1,
-    x: 3,
-    y: 12,
-    z: 17,
+    r: 20,
+    a: 90,
+    h: 15,
     shadow: {
       near: 0.1,
       far: 500,
@@ -225,6 +238,7 @@ function initThree (){
               }
             })
             object = gltf.scene;
+            // object.rotation.y = 180 * Math.PI / 180;
             scene.add(object);
             roughnessMipmapper.dispose();
             animate();
@@ -261,13 +275,11 @@ function update() {
   renderer.toneMappingExposure = parameters.exposure;
 
   lightUpdate( dirLight, parameters );
+
   /**
    * @function Toggle Camera
    * UNEXPOSED -> Debugger
-  camera.position.x = parameters.cameraPos.x;
-  camera.position.y = parameters.cameraPos.y;
-  camera.position.z = parameters.cameraPos.z;
-  camera.lookAt( parameters.cameraAt.x, parameters.cameraAt.y, parameters.cameraAt.z );
+   * cameraUpdate( camera, parameters );
    */
 }
 
@@ -435,10 +447,11 @@ function initGUI() {
 
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
+  controlGUI.add( save, 'saveSettings').name('Save Settings');
 
-  settingGUI(gui, parameters, fxaaPass);
+  settingGUI( gui, parameters, fxaaPass );
 
-  lightGUI(gui, parameters);
+  lightGUI( gui, parameters );
 
   // ssrGUI(gui, parameters, ssrPass);
 
@@ -446,19 +459,18 @@ function initGUI() {
 
   /**
    * @function Toggle Camera
-   * UNEXPOSED -> Debugger
-  const cameraPos = gui.addFolder('Camera Position')
-  cameraPos.add( parameters.cameraPos, 'x', -5, 5, 0.5);
-  cameraPos.add( parameters.cameraPos, 'y', -5, 5, 0.5);
-  cameraPos.add( parameters.cameraPos, 'z', -20, 20, 1);
-  const cameraAt = gui.addFolder("Camera Look At")
-  cameraAt.add( parameters.cameraAt, 'x', -5, 5, 0.05);
-  cameraAt.add( parameters.cameraAt, 'y', -5, 5, 0.05);
-  cameraAt.add( parameters.cameraAt, 'z', -5, 5, 0.05);
+   * UNEXPOSED -> Debug Only
+   * cameraGUI( gui, parameters );
    */
   gui.open();
 }
 
+const save = new function() {
+  this.saveSettings = function () {
+    lightLog( dirLight, parameters );
+    // cameraLog( camera, parameters );
+  }
+}
 
 /**
  * @summary Vue Mount ##################################################################################################
@@ -473,9 +485,6 @@ onMounted(() => {
     composer.setSize( window.innerWidth, window.innerHeight );
   }
   window.createImageBitmap = undefined;
-  window.onbeforeunload = function (){
-    gui.close();
-  }
 })
 
 </script>

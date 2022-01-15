@@ -49,22 +49,70 @@ export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
 }
 
 export function lightGUI( gui: any, parameters: any ) {
-    const lightGUI = gui.addFolder('Light Setting');
-    lightGUI.add( parameters.light, 'intensity', 0, 10, 0.01);
-    lightGUI.add( parameters.light, 'x', -5, 5, 0.01);
-    lightGUI.add( parameters.light, 'y', -20, 20, 0.01);
-    lightGUI.add( parameters.light, 'z', -20, 20, 0.01);
-    lightGUI.add( parameters.light.shadow, 'near', 0, 0.5, 0.001);
-    lightGUI.add( parameters.light.shadow, 'far', 10, 500, 1);
-    lightGUI.add( parameters.light.shadow, 'radius', 1, 10, 0.01);
-    lightGUI.add( parameters.light.shadow, 'blurSamples', 1, 10, 1);
+    const lightGUI = gui.addFolder('Directional Light Setting');
+    lightGUI.add( parameters.light, 'intensity', 0, 10, 0.01).name('Light Intensity');
+    lightGUI.add( parameters.light, 'r', 0, 50, 0.01).name('Rotate Radius');
+    lightGUI.add( parameters.light, 'a', -360, 360, 0.5).name('Rotate Angle');
+    lightGUI.add( parameters.light, 'h', 1, 20, 0.01).name('Light Height');
+    lightGUI.add( parameters.light.shadow, 'near', 0, 0.5, 0.001).name('Shadow Near');
+    lightGUI.add( parameters.light.shadow, 'far', 10, 500, 1).name('Shadow Far');
+    lightGUI.add( parameters.light.shadow, 'radius', 1, 10, 0.01).name('Shadow Radius');
+    lightGUI.add( parameters.light.shadow, 'blurSamples', 1, 10, 1).name('Shadow Blur Samples');
 }
 
 export function lightUpdate( dirLight: any, parameters: any ) {
-    dirLight.position.set( parameters.light.x, parameters.light.y, parameters.light.z );
+    // dirLight.position.set( parameters.light.x, parameters.light.y, parameters.light.z );
+    let x = parameters.light.r * Math.cos( parameters.light.a * Math.PI / 180);
+    let z = parameters.light.r * Math.sin( parameters.light.a * Math.PI / 180);
+    dirLight.position.set( x, parameters.light.h, z);
     dirLight.intensity = parameters.light.intensity;
     dirLight.shadow.camera.near = parameters.light.shadow.near;
     dirLight.shadow.camera.far = parameters.light.shadow.far;
     dirLight.shadow.radius = parameters.light.shadow.radius;
     dirLight.shadow.blurSamples = parameters.light.shadow.blurSamples;
+}
+
+export function lightLog( dirLight: any, parameters: any ) {
+    let x = parameters.light.r * Math.cos( parameters.light.a * Math.PI / 180);
+    let z = parameters.light.r * Math.sin( parameters.light.a * Math.PI / 180);
+    console.log('### Directional Light Settings\n' +
+        'x: ' + x + ';\n' +
+        'y: ' + parameters.light.h + ';\n' +
+        'z: ' + z + ';\n' +
+        'radius: ' + parameters.light.r + ';\n' +
+        'angle: ' + parameters.light.a + ';\n' +
+        'intensity: ' + parameters.light.intensity + ';\n' +
+        'shadow radius: ' + parameters.light.shadow.radius + ';\n' +
+        'shadow sample: ' + parameters.light.shadow.blurSamples + ';'
+    )
+}
+
+export function cameraGUI( gui: any, parameters: any ) {
+    const cameraGUI = gui.addFolder('Camera Setting');
+    const cameraPos = cameraGUI.addFolder('Camera Position')
+    cameraPos.add( parameters.camera.position, 'x', -25, 25, 0.5);
+    cameraPos.add( parameters.camera.position, 'y', -25, 25, 0.5);
+    cameraPos.add( parameters.camera.position, 'z', -25, 25, 0.5);
+    const cameraAt = cameraGUI.addFolder("Camera Look At")
+    cameraAt.add( parameters.camera.lookAt, 'x', -5, 5, 0.05);
+    cameraAt.add( parameters.camera.lookAt, 'y', -5, 5, 0.05);
+    cameraAt.add( parameters.camera.lookAt, 'z', -5, 5, 0.05);
+}
+
+export function cameraUpdate( camera: any, parameters: any ) {
+    camera.position.set( parameters.camera.position.x, parameters.camera.position.y, parameters.camera.position.z );
+    camera.lookAt( parameters.camera.lookAt.x, parameters.camera.lookAt.y, parameters.camera.lookAt.z );
+}
+
+export function cameraLog( camera: any, parameters: any ) {
+    console.log('### Camera Settings\n' +
+        'Position --- ' +
+        'x: ' + parameters.camera.position.x + '; ' +
+        'y: ' + parameters.camera.position.y + '; ' +
+        'z: ' + parameters.camera.position.z + '; ' + '\n' +
+        'Look At --- ' +
+        'x: ' + parameters.camera.lookAt.x + '; ' +
+        'y: ' + parameters.camera.lookAt.y + '; ' +
+        'z: ' + parameters.camera.lookAt.z + '; '
+    )
 }
