@@ -7,10 +7,10 @@ export function settingGUI( gui: any, parameters: any, fxaaPass: any ) {
     const settingGUI = gui.addFolder('Settings');
     // settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
     settingGUI.add( parameters, 'exposure', 0, 2, 0.01).name('HDR Exposure');
-    settingGUI.add( parameters, 'enableFXAA').name('Enable FXAA').onChange(function (){
-        fxaaPass.enabled = parameters.enableFXAA;
-    });
     settingGUI.add( parameters, 'enableSSR').name('Enable Postprocssing');
+    settingGUI.add( parameters.enable, 'FXAA').name('Enable FXAA').onChange(function (){
+        fxaaPass.enabled = parameters.enable.FXAA;
+    });
 }
 
 export function ssrGUI( gui: any, parameters: any, ssrPass: any ) {
@@ -33,6 +33,9 @@ export function ssrGUI( gui: any, parameters: any, ssrPass: any ) {
 
 export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
     const ssaoGUI = gui.addFolder('SSAO Setting');
+    ssaoGUI.add( parameters.enable, 'SSAO').name('Enable SSAO').onChange(function (){
+        ssaoPass.enabled = parameters.enable.SSAO;
+    })
     ssaoGUI.add( ssaoPass, 'output', {
         'Default': SSAOPass.OUTPUT.Default,
         'SSAO Only': SSAOPass.OUTPUT.SSAO,
@@ -45,7 +48,7 @@ export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
     }).name('Output Mode');
     ssaoGUI.add( ssaoPass, 'kernelRadius', 0, 5, 0.001).name('Kernel Radius');
     ssaoGUI.add( ssaoPass, 'minDistance', 0.00001, 0.0002).name('Min Distance');
-    ssaoGUI.add( ssaoPass, 'minDistance', 0.0002, 3).name('Max Distance');
+    ssaoGUI.add( ssaoPass, 'maxDistance', 0.0002, 3).name('Max Distance');
 }
 
 export function lightGUI( gui: any, parameters: any ) {
@@ -125,10 +128,20 @@ export const toneMappingOptions = {
     ACESFilmic: THREE.ACESFilmicToneMapping
 };
 
-export function toneMappingGUI( gui: any, parameters: any, renderer: any) {
+export function toneMappingGUI( gui: any, parameters: any, renderer: any ) {
     gui.add( parameters, 'toneMapping',
         Object.keys(toneMappingOptions)
     ).onChange( function () {
         renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
     }).name('Tone Mapping');
+}
+
+export function bloomGUI( gui: any, parameters: any, bloomPass: any ) {
+    const bloomGUI = gui.addFolder('Bloom Setting');
+    bloomGUI.add( parameters.enable, 'bloom').name('Enable Bloom').onChange(function (){
+        bloomPass.enabled = parameters.enable.bloom;
+    });
+    bloomGUI.add( bloomPass, 'strength', 0, 3, 0.002).name('Strength');
+    bloomGUI.add( bloomPass, 'radius', 0, 10, 0.01).name('Radius');
+    bloomGUI.add( bloomPass, 'threshold', 0, 1, 0.001).name('Threshold');
 }

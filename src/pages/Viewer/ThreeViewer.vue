@@ -18,7 +18,7 @@ import {
   cameraGUI,
   cameraUpdate,
   cameraLog,
-  toneMappingGUI,
+  toneMappingGUI, bloomGUI,
 } from "./guiHelper";
 import { toneMappingOptions } from './guiHelper';
 import { addPlane } from "./debugHelper";
@@ -79,7 +79,6 @@ let parameters = {
   darkenSSR: false,
   enableFXAA: false,
   enableBloom: true,
-  enableFilm: true,
   exposure: 1.0,
   toneMapping: 'ACESFilmic',
   camera: {
@@ -111,6 +110,12 @@ let parameters = {
       bias: -0.0005,
       blurSamples: 8
     }
+  },
+  enable: {
+    bloom: false,
+    SSR: false,
+    SSAO: true,
+    FXAA: false
   }
 }
 
@@ -234,7 +239,7 @@ function initThree (){
               }
             })
             object = gltf.scene;
-            // object.rotation.y = 180 * Math.PI / 180;
+            object.rotation.y = 180 * Math.PI / 180;
             scene.add(object);
             roughnessMipmapper.dispose();
             animate();
@@ -352,6 +357,11 @@ function initPost() {
   composer.addPass( fxaaPass );
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
+
+
+  initBloom();
+  composer.addPass( bloomPass );
+
   /**
    * @function Bloom Effect
    * UNEXPOSED -> Add & Alter
@@ -359,6 +369,14 @@ function initPost() {
   bloomPass = new UnrealBloomPass( new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 4, 1);
   composer.addPass( bloomPass );
    */
+}
+
+// Bloom Effect
+function initBloom() {
+  bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.5, 4, 1);
+  bloomPass.enabled = false;
 }
 
 // SSR Pass
@@ -440,14 +458,15 @@ function initGUI() {
   controlGUI.add( save, 'saveSettings').name('Save Settings');
   toneMappingGUI( gui, parameters, renderer );
 
-
   settingGUI( gui, parameters, fxaaPass );
 
   lightGUI( gui, parameters );
 
+  bloomGUI( gui, parameters, bloomPass );
+
   // ssrGUI(gui, parameters, ssrPass);
 
-  // ssaoGUI(gui, parameters, ssaoPass);
+  ssaoGUI( gui, parameters, ssaoPass );
 
   /**
    * @function Toggle Camera
