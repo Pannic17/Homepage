@@ -46,7 +46,7 @@ import { MathUtils, Vector3, Texture } from "three";
 /*
 Global Variables
  */
-let scene, camera, renderer, canvas, obj;
+let scene, camera, renderer, canvas, object;
 let control, gui, stats;
 // For customized touch events
 let startX, startY, startZoom, startDist;
@@ -183,11 +183,18 @@ function initThree (){
   new RGBELoader()
     .load('/hdr/club.hdr', function ( texture ) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
-      scene.background = texture;
+      // scene.background = texture;
       scene.environment = texture;
       scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
+      const backgroundLoader = new THREE.TextureLoader();
+      backgroundLoader.load(
+          '/image/galaxy.jpg',
+          function (texture) {
+            scene.background = texture;
+          }
+      );
 
       const loader = new GLTFLoader();
       loader.load(
@@ -217,8 +224,8 @@ function initThree (){
                  */
               }
             })
-            obj = gltf.scene;
-            scene.add(obj);
+            object = gltf.scene;
+            scene.add(object);
             roughnessMipmapper.dispose();
             animate();
           },
@@ -236,7 +243,7 @@ function initThree (){
 // Animation
 function animate() {
   if (parameters.autoPlay){
-    obj.rotation.y += 0.01;
+    object.rotation.y += 0.01;
   }
   if (parameters.enableSSR){
     composer.render();
