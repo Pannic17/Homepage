@@ -17,8 +17,10 @@ import {
   lightLog,
   cameraGUI,
   cameraUpdate,
-  cameraLog
+  cameraLog,
+  toneMappingGUI,
 } from "./guiHelper";
+import { toneMappingOptions } from './guiHelper';
 import { addPlane } from "./debugHelper";
 // import { onSingleTouchStart, onSingleTouchMove, onDoubleTouchStart, onDoubleTouchMove} from "./touchHelper";
 // Three.js
@@ -79,6 +81,7 @@ let parameters = {
   enableBloom: true,
   enableFilm: true,
   exposure: 1.0,
+  toneMapping: 'ACESFilmic',
   camera: {
     position: {
       x: 0,
@@ -119,14 +122,13 @@ function initRenderer() {
   renderer = new THREE.WebGLRenderer({antialias: true});
   renderer.setSize(window.innerWidth, window.innerHeight);
   /**
-   * @function Tone Mapping
    * @function Gamma
-   * UNEXPOSED -> Alter
+   * DISCARD -> UNAVAILABLE
    */
   renderer.physicallyCorrectLights = true;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.gammaOutput = true;
-  renderer.gammaFactor = 2.2;
+  renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
+  // renderer.gammaOutput = true;
+  // renderer.gammaFactor = 2.2;
 }
 
 // Canvas
@@ -177,17 +179,11 @@ function initThree (){
 
   initControl();
 
-  // touchListener();
-  // touchListenerHelper()
-
   initLight();
 
   initShadow();
 
-  // initObject();
-  // initMesh();
   addPlane( scene );
-
 
   initPost();
 
@@ -261,7 +257,6 @@ function animate() {
   }
   if (parameters.enableSSR){
     composer.render();
-    // console.log(parameters.enableSSR);
   } else {
     renderer.render(scene, camera);
   }
@@ -347,20 +342,15 @@ function initPost() {
 
   initSSR();
 
-  let renderPass = new RenderPass( scene, camera );
-
   initSSAO();
 
-  // composer.addPass( ssaoPass );
-  composer.addPass( renderPass );
-  // composer.addPass( ssrPass );
-  composer.addPass( ssaoPass );
-  composer.addPass(new ShaderPass(GammaCorrectionShader));
-
-  // initTAA()
   initFXAA();
-  // composer.addPass( taaPass );
-  // composer.addPass( fxaaPass );
+
+  let renderPass = new RenderPass( scene, camera );
+  composer.addPass( renderPass );
+  composer.addPass( ssaoPass );
+  composer.addPass( fxaaPass );
+  composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
   /**
    * @function Bloom Effect
@@ -448,6 +438,8 @@ function initGUI() {
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
   controlGUI.add( save, 'saveSettings').name('Save Settings');
+  toneMappingGUI( gui, parameters, renderer );
+
 
   settingGUI( gui, parameters, fxaaPass );
 

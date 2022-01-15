@@ -1,5 +1,5 @@
 // noinspection TypeScriptValidateJSTypes
-
+import * as THREE from 'three/';
 import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass';
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
 
@@ -115,4 +115,20 @@ export function cameraLog( camera: any, parameters: any ) {
         'y: ' + parameters.camera.lookAt.y + '; ' +
         'z: ' + parameters.camera.lookAt.z + '; '
     )
+}
+
+export const toneMappingOptions = {
+    None: THREE.NoToneMapping,
+    Linear: THREE.LinearToneMapping,
+    Reinhard: THREE.ReinhardToneMapping,
+    Cineon: THREE.CineonToneMapping,
+    ACESFilmic: THREE.ACESFilmicToneMapping
+};
+
+export function toneMappingGUI( gui: any, parameters: any, renderer: any) {
+    gui.add( parameters, 'toneMapping',
+        Object.keys(toneMappingOptions)
+    ).onChange( function () {
+        renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
+    }).name('Tone Mapping');
 }
