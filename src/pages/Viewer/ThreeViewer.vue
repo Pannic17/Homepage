@@ -357,18 +357,9 @@ function initPost() {
   composer.addPass( fxaaPass );
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
-
-
   initBloom();
   composer.addPass( bloomPass );
 
-  /**
-   * @function Bloom Effect
-   * UNEXPOSED -> Add & Alter
-  #### Bloom Effect ####
-  bloomPass = new UnrealBloomPass( new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 4, 1);
-  composer.addPass( bloomPass );
-   */
 }
 
 // Bloom Effect
