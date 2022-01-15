@@ -15,18 +15,19 @@ export function settingGUI( gui: any, parameters: any, fxaaPass: any ) {
 
 export function ssrGUI( gui: any, parameters: any, ssrPass: any ) {
     const ssrGUI = gui.addFolder('SSR Setting');
-
+    ssrGUI.add( parameters.enable, 'SSAO').name('Enable SSAO').onChange(function (){
+        ssrPass.enabled = parameters.enable.SSAO;
+    })
     ssrGUI.add( ssrPass, 'output', {
         'Default': SSRPass.OUTPUT.Default,
         'SSR Only': SSRPass.OUTPUT.SSR,
-        'Beauty': SSRPass.OUTPUT.Beauty,
         'Depth': SSRPass.OUTPUT.Depth,
         'Normal': SSRPass.OUTPUT.Normal,
         'Metalness': SSRPass.OUTPUT.Metalness,
     }).onChange( function(value: any) {
         ssrPass.output = parseInt( value );
     }).name('Output Mode');
-    ssrGUI.add( ssrPass, 'maxDistance', 0, 20, 0.2).name('Max Distance');
+    ssrGUI.add( ssrPass, 'maxDistance', 0, 5, 0.2).name('Max Distance');
     ssrGUI.add( ssrPass, 'opacity', 0, 1, 0.01).name('Opacity');
     ssrGUI.add( ssrPass, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance');
 }

@@ -40,7 +40,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 // SSR & SSAO
-import { SSRPass } from 'three/examples/jsm/postprocessing/SSRPass';
+import { SSRPass } from './SSRPass';
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
 import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
@@ -113,7 +113,7 @@ let parameters = {
   },
   enable: {
     bloom: false,
-    SSR: false,
+    SSR: true,
     SSAO: true,
     FXAA: false
   }
@@ -188,7 +188,7 @@ function initThree (){
 
   initShadow();
 
-  addPlane( scene );
+  // addPlane( scene );
 
   initPost();
 
@@ -230,7 +230,7 @@ function initThree (){
                  * realized in reload
                 parameters.maps.arm = child.material.aoMap;
                 let viewMaterial = new THREE.MeshPhongMaterial({
-                  color: 0xff0000,
+                  color: 0x0000ff,
                   map: parameters.maps.arm
                 })
                 let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
@@ -354,6 +354,7 @@ function initPost() {
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
   composer.addPass( ssaoPass );
+  composer.addPass( ssrPass );
   composer.addPass( fxaaPass );
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
@@ -384,7 +385,7 @@ function initSSR() {
 
   ssrPass.thickness = 0.1;
   ssrPass.infiniteThick = false;
-  ssrPass.maxDistance = 25;
+  ssrPass.maxDistance = 5;
   ssrPass.opacity = 1;
   ssrPass.surfDist = 0.001;
 }
@@ -455,7 +456,7 @@ function initGUI() {
 
   bloomGUI( gui, parameters, bloomPass );
 
-  // ssrGUI(gui, parameters, ssrPass);
+  ssrGUI(gui, parameters, ssrPass);
 
   ssaoGUI( gui, parameters, ssaoPass );
 
