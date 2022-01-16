@@ -21,13 +21,17 @@ export function addTestObjects( scene: any ) {
     const boxGeometry = new THREE.BoxBufferGeometry( 2, 2, 0.5 );
     const boxMaterial = new THREE.MeshStandardMaterial( {
         color: 'cyan',
+        metalness: 1,
+        roughness: 0.5
     });
     const boxMesh = new THREE.Mesh( boxGeometry, boxMaterial );
     boxMesh.position.set( -3, 3, - 3 );
     scene.add( boxMesh );
     const sphereGeometry = new THREE.IcosahedronBufferGeometry( 2, 4 );
     const sphereMaterial = new THREE.MeshStandardMaterial( {
-        color: 'red',
+        color: 'cyan',
+        metalness: 1,
+        roughness: 1
     });
     const sphereMesh = new THREE.Mesh( sphereGeometry, sphereMaterial );
     sphereMesh.position.set( 3, 3, - 3 );

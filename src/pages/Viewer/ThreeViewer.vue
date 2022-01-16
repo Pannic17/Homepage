@@ -12,16 +12,17 @@ import {
   settingGUI,
   ssrGUI,
   ssaoGUI,
-  lightGUI,
-  lightUpdate,
-  lightLog,
+  dirLightGUI,
+  dirLightUpdate,
+  dirlightLog,
   cameraGUI,
   cameraUpdate,
   cameraLog,
-  toneMappingGUI, bloomGUI,
+  toneMappingGUI,
+  bloomGUI, ambientLightGUI,
 } from "./guiHelper";
 import { toneMappingOptions } from './guiHelper';
-import { addPlane } from "./debugHelper";
+import {addPlane, addTestObjects} from "./debugHelper";
 // import { onSingleTouchStart, onSingleTouchMove, onDoubleTouchStart, onDoubleTouchMove} from "./touchHelper";
 // Three.js
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
@@ -53,6 +54,7 @@ import { TAARenderPass } from 'three/examples/jsm/postprocessing/TAARenderPass.j
 // DEBUG
 import { DebugEnvironment } from 'three/examples/jsm/environments/DebugEnvironment.js';
 import { MathUtils, Vector3, Texture } from "three";
+import { LightHelper } from "./LightHelper";
 
 
 /*
@@ -67,7 +69,7 @@ let speed = 0.001;
 let pointLight, ambientLight, dirLight, hemiLight, spotLight;
 // Postprocessing
 let composer;
-let ssrPass, ssaoPass, groundGeometry, groundReflector;
+let ssrPass, ssaoPass, ssrrPass, groundGeometry, groundReflector;
 let taaPass, fxaaPass;
 let bloomPass, filmEffect;
 
@@ -75,9 +77,7 @@ let bloomPass, filmEffect;
 let parameters = {
   envMap: 'HDR',
   autoPlay: false,
-  enableSSR: true,
-  darkenSSR: false,
-  enableFXAA: false,
+  enablePostprocessing: true,
   enableBloom: true,
   exposure: 1.0,
   toneMapping: 'ACESFilmic',
@@ -114,7 +114,7 @@ let parameters = {
   enable: {
     bloom: false,
     SSR: true,
-    SSAO: true,
+    SSAO: false,
     FXAA: false
   }
 }
@@ -189,6 +189,7 @@ function initThree (){
   initShadow();
 
   // addPlane( scene );
+  // addTestObjects( scene );
 
   initPost();
 
@@ -206,7 +207,7 @@ function initThree (){
       backgroundLoader.load(
           '/image/galaxy.jpg',
           function (texture) {
-            scene.background = texture;
+             scene.background = texture;
           }
       );
 
@@ -224,6 +225,14 @@ function initThree (){
                 child.castShadow = true;
                 child.receiveShadow = true;
                 // noinspection JSUnresolvedVariable
+                /**
+                 * @function Disable AO
+                 * DISCARD
+                 * for debug only
+                child.material.aoIntensity = 0;
+                child.material.aoMap = null;
+                scene.add(child);
+                 */
                 /**
                  * @function View ARM
                  * DISCARD -> RECONSTRUCT
@@ -250,6 +259,8 @@ function initThree (){
     });
 
   initGUI();
+
+  const lights = new LightHelper( scene, gui );
 }
 
 /**
@@ -260,7 +271,7 @@ function animate() {
   if (parameters.autoPlay){
     object.rotation.y += 0.01;
   }
-  if (parameters.enableSSR){
+  if (parameters.enablePostprocessing){
     composer.render();
   } else {
     renderer.render(scene, camera);
@@ -274,7 +285,7 @@ function animate() {
 function update() {
   renderer.toneMappingExposure = parameters.exposure;
 
-  lightUpdate( dirLight, parameters );
+  dirLightUpdate( dirLight, parameters );
 
   /**
    * @function Toggle Camera
@@ -302,15 +313,17 @@ function initScene() {
 
 // Lights
 function initLight() {
-  pointLight = new THREE.PointLight( 0xffffff, 40, 100)
-  pointLight.position.set( 3, 3, 3);
-  // scene.add(pointLight);
 
-  ambientLight = new THREE.AmbientLight( 0xffffff, 0x444444, parameters.intensity );
-  // scene.add( ambientLight );
+
+  pointLight = new THREE.PointLight(0xffffff, 40, 100);
+  pointLight.position.set(3, 3, 3);
+  // scene.add( pointLight );
+
+  ambientLight = new THREE.AmbientLight( 0xffffff, 1 );
+  scene.add( ambientLight );
 
   dirLight = new THREE.DirectionalLight( 0xffffff );
-  lightUpdate( dirLight, parameters );
+  dirLightUpdate( dirLight, parameters );
   dirLight.castShadow = true;
   dirLight.shadow.camera.right = 17;
   dirLight.shadow.camera.left = - 17;
@@ -319,7 +332,7 @@ function initLight() {
   dirLight.shadow.mapSize.width = 512;
   dirLight.shadow.mapSize.height = 512;
   dirLight.shadow.bias = - 0.0005;
-  scene.add( dirLight );
+  // scene.add( dirLight );
 
   hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
   // scene.add( hemiLight );
@@ -338,6 +351,9 @@ function initShadow() {
   renderer.shadowMap.type = THREE.VSMShadowMap;
 }
 
+function backgroundFit() {
+  
+}
 
 /**
  * @summary Postprocessing #############################################################################################
@@ -354,7 +370,7 @@ function initPost() {
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
   composer.addPass( ssaoPass );
-  composer.addPass( ssrPass );
+  // composer.addPass( ssrPass );
   composer.addPass( fxaaPass );
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
@@ -448,15 +464,14 @@ function initGUI() {
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
   controlGUI.add( save, 'saveSettings').name('Save Settings');
-  toneMappingGUI( gui, parameters, renderer );
 
-  settingGUI( gui, parameters, fxaaPass );
+  settingGUI( gui, parameters, renderer, fxaaPass, ambientLight );
 
-  lightGUI( gui, parameters );
+  dirLightGUI( gui, parameters );
 
   bloomGUI( gui, parameters, bloomPass );
 
-  ssrGUI(gui, parameters, ssrPass);
+  // ssrGUI(gui, parameters, ssrPass);
 
   ssaoGUI( gui, parameters, ssaoPass );
 
@@ -470,7 +485,7 @@ function initGUI() {
 
 const save = new function() {
   this.saveSettings = function () {
-    lightLog( dirLight, parameters );
+    dirlightLog( dirLight, parameters );
     // cameraLog( camera, parameters );
   }
 }

@@ -15,7 +15,7 @@ var SSRShader = {
 		DISTANCE_ATTENUATION: true,
 		FRESNEL: true,
 		INFINITE_THICK: false,
-		SELECTIVE: false,
+		// SELECTIVE: false,
 	},
 
 	uniforms: {
@@ -23,6 +23,7 @@ var SSRShader = {
 		'tDiffuse': { value: null },
 		'tNormal': { value: null },
 		'tMetalness': { value: null },
+		'tRoughness': { value: null },
 		'tDepth': { value: null },
 		'cameraNear': { value: null },
 		'cameraFar': { value: null },
@@ -32,8 +33,8 @@ var SSRShader = {
 		'opacity': { value: .5 },
 		'maxDistance': { value: 180 },
 		'cameraRange': { value: 0 },
-		'thickness': { value: .018 }
-
+		'thickness': { value: .018 },
+		'reflectivity': { value: .5 },
 	},
 
 	vertexShader: /* glsl */`
@@ -57,6 +58,7 @@ var SSRShader = {
 		uniform sampler2D tDepth;
 		uniform sampler2D tNormal;
 		uniform sampler2D tMetalness;
+		uniform sampler2D tRoughness;
 		uniform sampler2D tDiffuse;
 		uniform float cameraRange;
 		uniform vec2 resolution;
@@ -65,9 +67,44 @@ var SSRShader = {
 		uniform float cameraFar;
 		uniform float maxDistance;
 		uniform float thickness;
+		uniform float reflectivity;
 		uniform mat4 cameraProjectionMatrix;
 		uniform mat4 cameraInverseProjectionMatrix;
 		#include <packing>
+		const float PI = 3.14159265359;
+		// ADD--------------------------------------------------
+		float DistributionGGX(vec3 N, vec3 H, float roughness) {
+			float a = roughness*roughness;
+			float a2 = a*a;
+			float NdotH = max(dot(N, H), 0.0);
+			float NdotH2 = NdotH*NdotH;
+			float nom = a2;
+			float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+			denom = PI * denom * denom;
+			return nom / max(denom, 0.0000001); 
+			// prevent divide by zero for roughness=0.0 and NdotH=1.0
+		}
+		// ADD--------------------------------------------------
+		float GeometrySchlickGGX(float NdotV, float roughness) {
+			float r = (roughness + 1.0);
+			float k = (r*r) / 8.0;
+			float nom = NdotV;
+			float denom = NdotV * (1.0 - k) + k;
+			return nom / denom;
+		}
+		// ADD--------------------------------------------------------
+		float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
+			float NdotV = max(dot(N, V), 0.0);
+			float NdotL = max(dot(N, L), 0.0);
+			float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+			float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+			return ggx1 * ggx2;
+		}
+		// ADD----------------------------------------
+		vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+			return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
+		}
+		// DIVIDE---------------------------------------------
 		float pointToLineDistance(vec3 x0, vec3 x1, vec3 x2) {
 			//x0: point, x1: linePointA, x2: linePointB
 			//https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
@@ -113,10 +150,9 @@ var SSRShader = {
 			return xy;
 		}
 		void main(){
-			#ifdef SELECTIVE
-				float metalness=texture2D(tMetalness,vUv).r;
-				if(metalness==0.) return;
-			#endif
+			
+			float metalness=texture2D(tMetalness,vUv).r;
+			if(metalness==0.) return;
 
 			float depth = getDepth( vUv );
 			float viewZ = getViewZ( depth );
@@ -175,7 +211,7 @@ var SSRShader = {
 				vec3 vP=getViewPosition( uv, d, cW );
 
 				#ifdef PERSPECTIVE_CAMERA
-					// https://comp.nus.edu.sg/~lowkl/publications/lowk_persp_interp_techrep.pdf
+					// https://www.comp.nus.edu.sg/~lowkl/publications/lowk_persp_interp_techrep.pdf
 					float recipVPZ=1./viewPosition.z;
 					float viewReflectRayZ=1./(recipVPZ+s*(1./d1viewPosition.z-recipVPZ));
 				#else
@@ -219,6 +255,7 @@ var SSRShader = {
 							float fresnelCoe=(dot(viewIncidentDir,viewReflectDir)+1.)/2.;
 							op*=fresnelCoe;
 						#endif
+						op*=metalness;
 						vec4 reflectColor=texture2D(tDiffuse,uv);
 						gl_FragColor.xyz=reflectColor.xyz;
 						gl_FragColor.a=op;

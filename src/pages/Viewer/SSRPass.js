@@ -14,12 +14,12 @@ import {
 	UniformsUtils,
 	UnsignedShortType,
 	WebGLRenderTarget,
-	HalfFloatType,
+	HalfFloatType, MeshStandardMaterial, MeshPhysicalMaterial,
 } from 'three';
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { SSRShader } from 'three/examples/jsm/shaders/SSRShader.js';
-import { SSRBlurShader } from 'three/examples/jsm/shaders/SSRShader.js';
-import { SSRDepthShader } from 'three/examples/jsm/shaders/SSRShader.js';
+import { SSRShader } from './SSRShader.js';
+import { SSRBlurShader } from './SSRShader.js';
+import { SSRDepthShader } from './SSRShader.js';
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
 
 class SSRPass extends Pass {
@@ -49,6 +49,7 @@ class SSRPass extends Pass {
 
 		this._selects = selects;
 		this.selective = Array.isArray( this._selects );
+
 		Object.defineProperty( this, 'selects', {
 			get() {
 
@@ -56,6 +57,22 @@ class SSRPass extends Pass {
 
 			},
 			set( val ) {
+				// noinspection JSMismatchedCollectionQueryUpdate
+				/** ADD
+				 * reconstruct selects properties
+				 */
+				let arr = [];
+				val.forEach( obj3d=>{
+					obj3d.traverseVisible( child=>{
+						if ( child.material && typeof child.material.envMapIntensity === 'number' ){
+							arr.push( child );
+						}
+					});
+				});
+				/** REMOVE
+				arr = Array.from( new Set( arr ) );
+				this._selects = arr;
+
 
 				if ( this._selects === val ) return;
 				this._selects = val;
@@ -72,9 +89,10 @@ class SSRPass extends Pass {
 					this.ssrMaterial.needsUpdate = true;
 
 				}
-
+				 */
 			}
 		} );
+
 
 		this._bouncing = bouncing;
 		Object.defineProperty( this, 'bouncing', {
@@ -93,9 +111,9 @@ class SSRPass extends Pass {
 
 				} else {
 
-					/** REMOVE
+					/*
 					this.ssrMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
-					 */
+					*/
 
 				}
 
@@ -185,8 +203,7 @@ class SSRPass extends Pass {
 
 
 		// normal render target
-		/**
-		 * ADD
+		/** ADD
 		 * normal render target with depth buffer
 		 */
 		const depthTexture = new DepthTexture();
@@ -211,7 +228,13 @@ class SSRPass extends Pass {
 			format: RGBAFormat
 		} );
 
+		// roughness render target
 
+		this.roughnessRenderTarget = new WebGLRenderTarget( this.width, this.height, {
+			minFilter: NearestFilter,
+			magFilter: NearestFilter,
+			format: RGBAFormat
+		} );
 
 		// ssr render target
 
@@ -223,7 +246,7 @@ class SSRPass extends Pass {
 
 		this.blurRenderTarget = this.ssrRenderTarget.clone();
 		this.blurRenderTarget2 = this.ssrRenderTarget.clone();
-		// this.blurRenderTarget3 = this.ssrRenderTarget.clone();
+		this.blurRenderTarget3 = this.ssrRenderTarget.clone();
 
 		// ssr material
 
@@ -247,9 +270,12 @@ class SSRPass extends Pass {
 		this.ssrMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
 		 */
 		this.ssrMaterial.uniforms[ 'tNormal' ].value = this.normalRenderTarget.texture;
+		/** REMOVE
 		this.ssrMaterial.defines.SELECTIVE = this.selective;
+		 */
 		this.ssrMaterial.needsUpdate = true;
 		this.ssrMaterial.uniforms[ 'tMetalness' ].value = this.metalnessRenderTarget.texture;
+		this.ssrMaterial.uniforms[ 'tRoughness' ].value = this.roughnessRenderTarget.texture;
 		this.ssrMaterial.uniforms[ 'tDepth' ].value = this.normalRenderTarget.depthTexture; //CHANGED
 		this.ssrMaterial.uniforms[ 'cameraNear' ].value = this.camera.near;
 		this.ssrMaterial.uniforms[ 'cameraFar' ].value = this.camera.far;
@@ -263,17 +289,24 @@ class SSRPass extends Pass {
 		this.normalMaterial = new MeshNormalMaterial();
 		this.normalMaterial.blending = NoBlending;
 
+		/** REMOVE
 		// metalnessOn material
-
 		this.metalnessOnMaterial = new MeshBasicMaterial( {
 			color: 'white'
 		} );
-
 		// metalnessOff material
-
 		this.metalnessOffMaterial = new MeshBasicMaterial( {
 			color: 'black'
 		} );
+		 */
+
+		/** ADD
+		 * replace metalness on/off with metalness and roughness
+		 */
+		// metalness material
+		this.metalnessMaterial = new MeshBasicMaterial({ color: 'white' });
+		// roughness material
+		this.roughnessMaterial = new MeshBasicMaterial({ color: 'white' });
 
 		// blur material
 
@@ -297,16 +330,16 @@ class SSRPass extends Pass {
 		this.blurMaterial2.uniforms[ 'tDiffuse' ].value = this.blurRenderTarget.texture;
 		this.blurMaterial2.uniforms[ 'resolution' ].value.set( this.width, this.height );
 
-		// // blur material 3
+		// blur material 3
 
-		// this.blurMaterial3 = new ShaderMaterial({
-		//   defines: Object.assign({}, SSRBlurShader.defines),
-		//   uniforms: UniformsUtils.clone(SSRBlurShader.uniforms),
-		//   vertexShader: SSRBlurShader.vertexShader,
-		//   fragmentShader: SSRBlurShader.fragmentShader
-		// });
-		// this.blurMaterial3.uniforms['tDiffuse'].value = this.blurRenderTarget2.texture;
-		// this.blurMaterial3.uniforms['resolution'].value.set(this.width, this.height);
+		this.blurMaterial3 = new ShaderMaterial({
+		  defines: Object.assign({}, SSRBlurShader.defines),
+		  uniforms: UniformsUtils.clone(SSRBlurShader.uniforms),
+		  vertexShader: SSRBlurShader.vertexShader,
+		  fragmentShader: SSRBlurShader.fragmentShader
+		});
+		this.blurMaterial3.uniforms['tDiffuse'].value = this.blurRenderTarget2.texture;
+		this.blurMaterial3.uniforms['resolution'].value.set(this.width, this.height);
 
 		// material for rendering the depth
 
@@ -353,16 +386,21 @@ class SSRPass extends Pass {
 		this.prevRenderTarget.dispose();
 		this.normalRenderTarget.dispose();
 		this.metalnessRenderTarget.dispose();
+		this.roughnessRenderTarget.dispose();
 		this.ssrRenderTarget.dispose();
 		this.blurRenderTarget.dispose();
 		this.blurRenderTarget2.dispose();
-		// this.blurRenderTarget3.dispose();
+		this.blurRenderTarget3.dispose();
 
 		// dispose materials
 
 		this.normalMaterial.dispose();
+		/** REMOVE
 		this.metalnessOnMaterial.dispose();
 		this.metalnessOffMaterial.dispose();
+		 */
+		this.metalnessMaterial.dispose();
+		this.roughnessMaterial.dispose();
 		this.blurMaterial.dispose();
 		this.blurMaterial2.dispose();
 		this.copyMaterial.dispose();
@@ -378,7 +416,7 @@ class SSRPass extends Pass {
 
 		// render beauty and depth
 
-		/** REMOVED
+		/** REMOVE
 		renderer.setRenderTarget( this.beautyRenderTarget );
 		renderer.clear();
 		if ( this.groundReflector ) {
@@ -393,17 +431,18 @@ class SSRPass extends Pass {
 		if ( this.groundReflector ) this.groundReflector.visible = false;
 		 */
 
-		// render normals
-
+		// render normals and depths
 		this.renderOverride( renderer, this.normalMaterial, this.normalRenderTarget, 0, 0 );
 
-		// render metalnesses
-
+		// render metalness
+		this.renderMetalness( renderer, this.metalnessRenderTarget, 0, 0);
+		// rneder roughness
+		this.renderRoughness( renderer, this.roughnessRenderTarget, 0, 0 );
+		/**
 		if ( this.selective ) {
-
 			this.renderMetalness( renderer, this.metalnessOnMaterial, this.metalnessRenderTarget, 0, 0 );
-
 		}
+		 */
 
 		// render SSR
 
@@ -420,7 +459,7 @@ class SSRPass extends Pass {
 
 			this.renderPass( renderer, this.blurMaterial, this.blurRenderTarget );
 			this.renderPass( renderer, this.blurMaterial2, this.blurRenderTarget2 );
-			// this.renderPass(renderer, this.blurMaterial3, this.blurRenderTarget3);
+			this.renderPass( renderer, this.blurMaterial3, this.blurRenderTarget3 );
 
 		}
 
@@ -522,6 +561,14 @@ class SSRPass extends Pass {
 
 				break;
 
+			case SSRPass.OUTPUT.Roughness:
+
+				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.roughnessRenderTarget.texture;
+				this.copyMaterial.blending = NoBlending;
+				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
+
+				break;
+
 			default:
 				console.warn( 'THREE.SSRPass: Unknown output type.' );
 
@@ -590,7 +637,7 @@ class SSRPass extends Pass {
 
 	}
 
-	renderMetalness( renderer, overrideMaterial, renderTarget, clearColor, clearAlpha ) {
+	renderMetalness( renderer, renderTarget, clearColor, clearAlpha ) {
 
 		this.originalClearColor.copy( renderer.getClearColor( this.tempColor ) );
 		const originalClearAlpha = renderer.getClearAlpha( this.tempColor );
@@ -599,8 +646,7 @@ class SSRPass extends Pass {
 		renderer.setRenderTarget( renderTarget );
 		renderer.autoClear = false;
 
-		clearColor = overrideMaterial.clearColor || clearColor;
-		clearAlpha = overrideMaterial.clearAlpha || clearAlpha;
+
 
 		if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
 
@@ -612,31 +658,83 @@ class SSRPass extends Pass {
 
 		this.scene.traverseVisible( child => {
 
+			/** REMOVE
 			child._SSRPassBackupMaterial = child.material;
 			if ( this._selects.includes( child ) ) {
-
 				child.material = this.metalnessOnMaterial;
-
 			} else {
-
 				child.material = this.metalnessOffMaterial;
+			}
+			 */
 
+			if ( child.material instanceof MeshStandardMaterial || child.material instanceof MeshPhysicalMaterial ){
+				this.metalnessMaterial.color.r = 1;
+				this.metalnessMaterial.color.g = 1;
+				this.metalnessMaterial.color.b = 1;
+				this.metalnessMaterial.map = child.material.metalnessMap;
+			} else {
+				this.metalnessMaterial.color.setScalar( this.defaultIntensity );
 			}
 
+			let materialTemp = child.material;
+			child.material = this.metalnessMaterial;
+			renderer.render( child, this.camera );
+			child.material = materialTemp;
 		} );
+
+		/** REMOVE
 		renderer.render( this.scene, this.camera );
 		this.scene.traverseVisible( child => {
 
 			child.material = child._SSRPassBackupMaterial;
 
 		} );
+		 */
 
 		// restore original state
-
 		renderer.autoClear = originalAutoClear;
 		renderer.setClearColor( this.originalClearColor );
 		renderer.setClearAlpha( originalClearAlpha );
+	}
 
+	renderRoughness( renderer, renderTarget, clearColor, clearAlpha ) {
+
+		this.originalClearColor.copy( renderer.getClearColor( this.tempColor ) );
+		const originalClearAlpha = renderer.getClearAlpha( this.tempColor );
+		const originalAutoClear = renderer.autoClear;
+
+		renderer.setRenderTarget( renderTarget );
+		renderer.autoClear = false;
+
+		if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
+
+			renderer.setClearColor( clearColor );
+			renderer.setClearAlpha( clearAlpha || 0.0 );
+			renderer.clear();
+
+		}
+
+		this.scene.traverseVisible( child => {
+
+			if ( child.material instanceof MeshStandardMaterial || child.material instanceof MeshPhysicalMaterial ){
+				this.roughnessMaterial.color.r = 0.5;
+				this.roughnessMaterial.color.g = 0.5;
+				this.roughnessMaterial.color.b = 0.5;
+				this.roughnessMaterial.map = child.material.roughnessMap;
+			} else {
+				this.roughnessMaterial.color.setScalar( this.defaultIntensity );
+			}
+
+			let materialTemp = child.material;
+			child.material = this.roughnessMaterial;
+			renderer.render( child, this.camera, false ); // TODO: Will render all descendants?
+			child.material = materialTemp;
+		} );
+
+		// restore original state
+		renderer.autoClear = originalAutoClear;
+		renderer.setClearColor( this.originalClearColor );
+		renderer.setClearAlpha( originalClearAlpha );
 	}
 
 	setSize( width, height ) {
@@ -651,9 +749,10 @@ class SSRPass extends Pass {
 		this.ssrRenderTarget.setSize( width, height );
 		this.normalRenderTarget.setSize( width, height );
 		this.metalnessRenderTarget.setSize( width, height );
+		this.roughnessRenderTarget.setSize( width, height );
 		this.blurRenderTarget.setSize( width, height );
 		this.blurRenderTarget2.setSize( width, height );
-		// this.blurRenderTarget3.setSize(width, height);
+		this.blurRenderTarget3.setSize(width, height);
 
 		this.ssrMaterial.uniforms[ 'resolution' ].value.set( width, height );
 		this.ssrMaterial.uniforms[ 'cameraProjectionMatrix' ].value.copy( this.camera.projectionMatrix );
@@ -673,6 +772,7 @@ SSRPass.OUTPUT = {
 	'Depth': 4,
 	'Normal': 5,
 	'Metalness': 7,
+	'Roughness': 8,
 };
 
 export { SSRPass };
