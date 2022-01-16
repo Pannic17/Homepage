@@ -20,7 +20,7 @@ export function addPlane( scene: any ) {
 export function addTestObjects( scene: any ) {
     const boxGeometry = new THREE.BoxBufferGeometry( 2, 2, 0.5 );
     const boxMaterial = new THREE.MeshStandardMaterial( {
-        color: 'cyan',
+        color: 'white',
         metalness: 1,
         roughness: 0.5
     });
@@ -29,7 +29,7 @@ export function addTestObjects( scene: any ) {
     scene.add( boxMesh );
     const sphereGeometry = new THREE.IcosahedronBufferGeometry( 2, 4 );
     const sphereMaterial = new THREE.MeshStandardMaterial( {
-        color: 'cyan',
+        color: 'white',
         metalness: 1,
         roughness: 1
     });

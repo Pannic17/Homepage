@@ -19,7 +19,6 @@ class LightHelper {
         addMenu.add( this, 'addSelection', {
             'None': LightHelper.LIGHT.None,
             'Point': LightHelper.LIGHT.Point,
-            'Ambient': LightHelper.LIGHT.Ambient,
             'Directional': LightHelper.LIGHT.Directional,
             'Spot': LightHelper.LIGHT.Spot,
             'Hemisphere': LightHelper.LIGHT.Hemisphere,
@@ -48,12 +47,11 @@ class LightHelper {
         this.scene.add( pointLight );
         this.lights.push( pointLight );
         let index = this.lights.length;
-        this.pointLightGUI( index, pointLight);
+        this.pointLightGUI( index, pointLight );
         return pointLight;
     }
 
-    pointLightGUI( index, pointLight, _scene){
-
+    pointLightGUI( index, pointLight ){
         let lightName = '#' + index + ' PointLight';
         const pointLightGUI = this.gui.addFolder( lightName );
         pointLightGUI.add( pointLight, 'intensity', 0, 100).name('Intensity');
@@ -72,15 +70,32 @@ class LightHelper {
         let setting = { 'remove': remove };
         pointLightGUI.add( setting, 'remove').name('Remove');
     }
+
+    initDirLight() {
+        let dirLight = new THREE.DirectionalLight( 0xffffff );
+        dirLight.position.set( x, parameters.light.h, z);
+        dirLight.intensity = parameters.light.intensity;
+        dirLight.shadow.camera.near = parameters.light.shadow.near;
+        dirLight.shadow.camera.far = parameters.light.shadow.far;
+        dirLight.shadow.radius = parameters.light.shadow.radius;
+        dirLight.shadow.blurSamples = parameters.light.shadow.blurSamples;
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.right = 15;
+        dirLight.shadow.camera.left = - 15;
+        dirLight.shadow.camera.top	= 15;
+        dirLight.shadow.camera.bottom = - 15;
+        dirLight.shadow.mapSize.width = 512;
+        dirLight.shadow.mapSize.height = 512;
+        dirLight.shadow.bias = - 0.0005;
+    }
 }
 
 LightHelper.LIGHT = {
     'None': 0,
     'Point': 1,
-    'Ambient': 2,
-    'Directional': 3,
-    'Spot': 4,
-    'Hemisphere': 5
+    'Directional': 2,
+    'Spot': 3,
+    'Hemisphere': 4
 }
 
 LightHelper.ADD = new function() {

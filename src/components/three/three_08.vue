@@ -80,7 +80,7 @@ function init() {
   scene.add( spotLight );
 
   const loader = new GLTFLoader();
-  loader.load( '/model/maoty_gltf/1.gltf', function ( gltf ) {
+  loader.load( '/model/cat_gltf/1.gltf', function ( gltf ) {
 
     // geometry.computeVertexNormals();
     gltf.scene.traverse(function (child){

@@ -55,12 +55,14 @@ import { TAARenderPass } from 'three/examples/jsm/postprocessing/TAARenderPass.j
 import { DebugEnvironment } from 'three/examples/jsm/environments/DebugEnvironment.js';
 import { MathUtils, Vector3, Texture } from "three";
 import { LightHelper } from "./LightHelper";
+// import { PMREMGenerator} from "three";
+import { PMREMGenerator } from "./PMREMGenerator";
 
 
 /*
 Global Variables
  */
-let scene, camera, renderer, canvas, object;
+let scene, camera, renderer, canvas, object, background, pmrem, hdr;
 let control, gui, stats;
 // For customized touch events
 let startX, startY, startZoom, startDist;
@@ -76,6 +78,7 @@ let bloomPass, filmEffect;
 // Global Variable for Three.js
 let parameters = {
   envMap: 'HDR',
+  envAngle: 0,
   autoPlay: false,
   enablePostprocessing: true,
   enableBloom: true,
@@ -99,7 +102,7 @@ let parameters = {
     env: null,
   },
   light: {
-    intensity: 1,
+    intensity: 0,
     r: 20,
     a: 90,
     h: 15,
@@ -131,7 +134,7 @@ function initRenderer() {
    * DISCARD -> UNAVAILABLE
    */
   renderer.physicallyCorrectLights = true;
-  renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
+
   // renderer.gammaOutput = true;
   // renderer.gammaFactor = 2.2;
 }
@@ -193,21 +196,28 @@ function initThree (){
 
   initPost();
 
-
+  pmrem = new PMREMGenerator( renderer );
 
   new RGBELoader()
-    .load('/hdr/club.hdr', function ( texture ) {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
+    .load('/hdr/xmas.hdr', function ( texture ) {
+      // texture.mapping = THREE.EquirectangularReflectionMapping;
       // scene.background = texture;
-      scene.environment = texture;
+      hdr = texture;
+      let hdrTexture = pmrem.fromEquirectangular(texture, parameters.envAngle ).texture
+      scene.environment = hdrTexture;
+      scene.background = hdrTexture;
+      // scene.background = 'black'
       scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
+      pmrem.compileEquirectangularShader();
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
       const backgroundLoader = new THREE.TextureLoader();
       backgroundLoader.load(
           '/image/galaxy.jpg',
-          function (texture) {
-             scene.background = texture;
+          function ( texture ) {
+            // background = texture;
+            // scene.background = background;
+            // backgroundFit( background );
           }
       );
 
@@ -256,6 +266,8 @@ function initThree (){
           function (xhr) {console.log((xhr.loaded / xhr.total * 100) + '% loaded');},
           function (error) {console.log('An error happened');}
       );
+
+      pmrem.dispose();
     });
 
   initGUI();
@@ -287,6 +299,8 @@ function update() {
 
   dirLightUpdate( dirLight, parameters );
 
+  // pmrem.updateAngle( parameters.envAngle );
+
   /**
    * @function Toggle Camera
    * UNEXPOSED -> Debugger
@@ -313,14 +327,8 @@ function initScene() {
 
 // Lights
 function initLight() {
-
-
-  pointLight = new THREE.PointLight(0xffffff, 40, 100);
-  pointLight.position.set(3, 3, 3);
-  // scene.add( pointLight );
-
   ambientLight = new THREE.AmbientLight( 0xffffff, 1 );
-  scene.add( ambientLight );
+  // scene.add( ambientLight );
 
   dirLight = new THREE.DirectionalLight( 0xffffff );
   dirLightUpdate( dirLight, parameters );
@@ -351,8 +359,14 @@ function initShadow() {
   renderer.shadowMap.type = THREE.VSMShadowMap;
 }
 
-function backgroundFit() {
-  
+function backgroundFit( texture ) {
+  const targetAspect = window.innerWidth / window.innerHeight;
+  const imageAspect = texture.image.width / texture.image.height;
+  const factor = imageAspect / targetAspect;
+  scene.background.offset.x = factor > 1 ? (1 - 1 / factor) / 2 : 0;
+  scene.background.repeat.x = factor > 1 ? 1 / factor : 1;
+  scene.background.offset.y = factor > 1 ? 0 : (1 - factor) / 2;
+  scene.background.repeat.y = factor > 1 ? 1 : factor;
 }
 
 /**
@@ -367,6 +381,8 @@ function initPost() {
 
   initFXAA();
 
+  initBloom();
+
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
   composer.addPass( ssaoPass );
@@ -374,8 +390,9 @@ function initPost() {
   composer.addPass( fxaaPass );
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
-  initBloom();
+
   composer.addPass( bloomPass );
+  renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
 
 }
 
@@ -464,10 +481,17 @@ function initGUI() {
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
   controlGUI.add( save, 'saveSettings').name('Save Settings');
+  controlGUI.add( parameters, 'envAngle', -Math.PI, Math.PI).name('HDR Angle').onChange(
+      function (value) {
+        let hdrTexture = pmrem.fromEquirectangular( hdr, value ).texture;
+        scene.environment = hdrTexture;
+        scene.background = hdrTexture;
+      }
+  );
 
   settingGUI( gui, parameters, renderer, fxaaPass, ambientLight );
 
-  dirLightGUI( gui, parameters );
+  // dirLightGUI( gui, parameters );
 
   bloomGUI( gui, parameters, bloomPass );
 
@@ -501,6 +525,7 @@ onMounted(() => {
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
     composer.setSize( window.innerWidth, window.innerHeight );
+    backgroundFit( background );
   }
   window.createImageBitmap = undefined;
 })
