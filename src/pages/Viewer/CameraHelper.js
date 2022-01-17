@@ -20,16 +20,24 @@ class CameraHelper {
     cameraGUI() {
         let _attr = {
             'focusLength': this.camera.getFocalLength(),
-            'Save': logInfo
+            'Save': logInfo,
+            'Reset': resetCamera,
         }
         let _this = this;
         this.gui.add( _attr, 'focusLength', 24, 200).onChange(function (value){
             _this.camera.setFocalLength(value);
-        });
-        this.gui.add( _attr, 'Save')
+        }).name('Focus Length');
+        this.gui.add( _attr, 'Save');
+        this.gui.add( _attr, 'Reset');
 
         function logInfo() {
             _this.cameraLog( _this.camera );
+            _this.control.saveState();
+        }
+
+        function resetCamera() {
+            _this.control.reset();
+            _this.control.update();
         }
     }
 
@@ -50,6 +58,7 @@ class CameraHelper {
         let control = new OrbitControls( this.camera, this.canvas );
         control.target = new Vector3( 0, -1.5, 0);
         control.update();
+        control.saveState();
         // control.enableDamping = true;
         control.rotateSpeed = SPEED*1000;
         control.maxDistance = 100;

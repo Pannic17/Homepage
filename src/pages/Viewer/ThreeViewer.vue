@@ -13,9 +13,6 @@ import {
   ssrGUI,
   ssaoGUI,
   dirlightLog,
-  cameraGUI,
-  cameraUpdate,
-  cameraLog,
   toneMappingGUI,
   bloomGUI, ambientLightGUI,
 } from "./guiHelper";
@@ -54,8 +51,10 @@ import { DebugEnvironment } from 'three/examples/jsm/environments/DebugEnvironme
 import { MathUtils, Vector3, Texture } from "three";
 import { LightHelper } from "./LightHelper";
 import { CameraHelper } from './CameraHelper';
+import { PostHelper } from "./PostHelper";
 // import { PMREMGenerator} from "three";
 import { PMREMGenerator } from "./PMREMGenerator";
+
 
 
 /*
@@ -177,6 +176,8 @@ function initThree (){
 
   initShadow();
 
+  initGUI();
+
   // addPlane( scene );
   // addTestObjects( scene );
 
@@ -260,7 +261,6 @@ function initThree (){
       pmrem.dispose();
     });
 
-  initGUI();
 
   const lightsMenu = new LightHelper( scene, gui );
   const cameraMenu = new CameraHelper( scene, camera, canvas, gui );
@@ -308,7 +308,7 @@ function initScene() {
 
 // Lights
 function initLight() {
-  ambientLight = new THREE.AmbientLight( 0xffffff, 1 );
+  ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
   scene.add( ambientLight );
 }
 
@@ -334,25 +334,27 @@ function backgroundFit( texture ) {
 function initPost() {
   composer = new EffectComposer( renderer );
 
-  initSSR();
+  // initSSR();
 
-  initSSAO();
+  // initSSAO();
 
-  initFXAA();
+  // initFXAA();
 
-  initBloom();
+  // initBloom();
 
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
-  composer.addPass( ssaoPass );
-  composer.addPass( ssrPass );
-  composer.addPass( fxaaPass );
+
+  const postprocessing = new PostHelper( scene, composer, camera, renderer, gui);
+  // composer.addPass( ssaoPass );
+  // composer.addPass( ssrPass );
+  // composer.addPass( bloomPass );
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
-
-  composer.addPass( bloomPass );
   renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
 
+  composer.addPass( postprocessing.getFXAA() );
+  // composer.addPass( fxaaPass );
 }
 
 // Bloom Effect
@@ -439,7 +441,7 @@ function initGUI() {
 
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
-  controlGUI.add( save, 'saveSettings').name('Save Settings');
+  // controlGUI.add( save, 'saveSettings').name('Save Settings');
   controlGUI.add( parameters, 'envAngle', -Math.PI, Math.PI).name('HDR Angle').onChange(
       function (value) {
         let hdrTexture = pmrem.fromEquirectangular( hdr, value ).texture;
@@ -449,12 +451,6 @@ function initGUI() {
   );
 
   settingGUI( gui, parameters, renderer, fxaaPass, ambientLight );
-
-  bloomGUI( gui, parameters, bloomPass );
-
-  ssrGUI(gui, parameters, ssrPass);
-
-  ssaoGUI( gui, parameters, ssaoPass );
 
   gui.open();
 }

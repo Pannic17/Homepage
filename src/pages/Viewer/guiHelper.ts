@@ -9,9 +9,6 @@ export function settingGUI( gui: any, parameters: any, renderer: any, fxaaPass: 
     ambientLightGUI( settingGUI, ambientLight );
     settingGUI.add( parameters, 'exposure', 0, 2, 0.01).name('HDR Exposure');
     settingGUI.add( parameters, 'enablePostprocessing').name('Postprocssing');
-    settingGUI.add( parameters.enable, 'FXAA').name('Enable FXAA').onChange(function (){
-        fxaaPass.enabled = parameters.enable.FXAA;
-    });
     toneMappingGUI( settingGUI, parameters, renderer );
 }
 
@@ -73,36 +70,6 @@ export function dirlightLog( dirLight: any, parameters: any ) {
 
 export function ambientLightGUI( gui: any, ambientLight: any) {
     gui.add( ambientLight, 'intensity', 0, 10, 0.01).name('Ambient Intensity');
-}
-
-export function cameraGUI( gui: any, parameters: any ) {
-    const cameraGUI = gui.addFolder('Camera Setting');
-    const cameraPos = cameraGUI.addFolder('Camera Position')
-    cameraPos.add( parameters.camera.position, 'x', -25, 25, 0.5);
-    cameraPos.add( parameters.camera.position, 'y', -25, 25, 0.5);
-    cameraPos.add( parameters.camera.position, 'z', -25, 25, 0.5);
-    const cameraAt = cameraGUI.addFolder("Camera Look At")
-    cameraAt.add( parameters.camera.lookAt, 'x', -5, 5, 0.05);
-    cameraAt.add( parameters.camera.lookAt, 'y', -5, 5, 0.05);
-    cameraAt.add( parameters.camera.lookAt, 'z', -5, 5, 0.05);
-}
-
-export function cameraUpdate( camera: any, parameters: any ) {
-    camera.position.set( parameters.camera.position.x, parameters.camera.position.y, parameters.camera.position.z );
-    camera.lookAt( parameters.camera.lookAt.x, parameters.camera.lookAt.y, parameters.camera.lookAt.z );
-}
-
-export function cameraLog( camera: any, parameters: any ) {
-    console.log('### Camera Settings\n' +
-        'Position --- ' +
-        'x: ' + parameters.camera.position.x + '; ' +
-        'y: ' + parameters.camera.position.y + '; ' +
-        'z: ' + parameters.camera.position.z + '; ' + '\n' +
-        'Look At --- ' +
-        'x: ' + parameters.camera.lookAt.x + '; ' +
-        'y: ' + parameters.camera.lookAt.y + '; ' +
-        'z: ' + parameters.camera.lookAt.z + '; '
-    )
 }
 
 export const toneMappingOptions = {

@@ -12,8 +12,6 @@ class LightHelper {
         this.addMenu();
     }
 
-
-
     addMenu() {
         const addMenu = this.gui.addFolder('Add Light');
         addMenu.add( this, 'addSelection', {
@@ -52,7 +50,7 @@ class LightHelper {
     }
 
     lightShadow( light ) {
-        light.shadow.castShadow = true;
+        light.castShadow = true;
         light.shadow.camera.near = 0.1;
         light.shadow.camera.far = 500;
         light.shadow.radius = 4;
@@ -114,6 +112,8 @@ class LightHelper {
         pointLightGUI.add( pointLight.position, 'z', -20, 20);
         pointLightGUI.add( pointLight, 'decay', 1, 5).name('Decay');
         pointLightGUI.add( pointLight, 'power', 1, 1000).name('Power');
+        pointLightGUI.add( pointLight.shadow, 'radius', 0, 10).name('Shadow Radius');
+        pointLightGUI.add( pointLight.shadow, 'blurSamples', 1, 10, 1).name('Blur Samples');
 
         let setting = {
             'Enable': true,
@@ -156,6 +156,8 @@ class LightHelper {
         dirLightGUI.add( _attr, 'h', 1, 20).onChange(function (value){
             dirLight.position.y = value
         }).name('Light Height');
+        dirLightGUI.add( dirLight.shadow, 'radius', 0, 10).name('Shadow Radius');
+        dirLightGUI.add( dirLight.shadow, 'blurSamples', 1, 10, 1).name('Blur Samples');
 
         let setting = {
             'Enable': true,
