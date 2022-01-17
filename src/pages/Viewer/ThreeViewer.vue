@@ -12,8 +12,6 @@ import {
   settingGUI,
   ssrGUI,
   ssaoGUI,
-  dirLightGUI,
-  dirLightUpdate,
   dirlightLog,
   cameraGUI,
   cameraUpdate,
@@ -55,6 +53,7 @@ import { TAARenderPass } from 'three/examples/jsm/postprocessing/TAARenderPass.j
 import { DebugEnvironment } from 'three/examples/jsm/environments/DebugEnvironment.js';
 import { MathUtils, Vector3, Texture } from "three";
 import { LightHelper } from "./LightHelper";
+import { CameraHelper } from './CameraHelper';
 // import { PMREMGenerator} from "three";
 import { PMREMGenerator } from "./PMREMGenerator";
 
@@ -62,16 +61,15 @@ import { PMREMGenerator } from "./PMREMGenerator";
 /*
 Global Variables
  */
-let scene, camera, renderer, canvas, object, background, pmrem, hdr;
+let scene, camera, renderer, canvas, object;
 let control, gui, stats;
 // For customized touch events
-let startX, startY, startZoom, startDist;
 let speed = 0.001;
 // Light;
-let pointLight, ambientLight, dirLight, hemiLight, spotLight;
+let ambientLight, background, pmrem, hdr;
 // Postprocessing
 let composer;
-let ssrPass, ssaoPass, ssrrPass, groundGeometry, groundReflector;
+let ssrPass, ssaoPass, ssrrPass;
 let taaPass, fxaaPass;
 let bloomPass, filmEffect;
 
@@ -100,19 +98,6 @@ let parameters = {
   maps: {
     arm: null,
     env: null,
-  },
-  light: {
-    intensity: 0,
-    r: 20,
-    a: 90,
-    h: 15,
-    shadow: {
-      near: 0.1,
-      far: 500,
-      radius: 4,
-      bias: -0.0005,
-      blurSamples: 8
-    }
   },
   enable: {
     bloom: false,
@@ -201,11 +186,10 @@ function initThree (){
   new RGBELoader()
     .load('/hdr/xmas.hdr', function ( texture ) {
       // texture.mapping = THREE.EquirectangularReflectionMapping;
-      // scene.background = texture;
       hdr = texture;
       let hdrTexture = pmrem.fromEquirectangular(texture, parameters.envAngle ).texture
       scene.environment = hdrTexture;
-      scene.background = hdrTexture;
+      // scene.background = hdrTexture;
       // scene.background = 'black'
       scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
       pmrem.compileEquirectangularShader();
@@ -215,9 +199,9 @@ function initThree (){
       backgroundLoader.load(
           '/image/galaxy.jpg',
           function ( texture ) {
-            // background = texture;
-            // scene.background = background;
-            // backgroundFit( background );
+            background = texture;
+            scene.background = background;
+            backgroundFit( background );
           }
       );
 
@@ -272,7 +256,8 @@ function initThree (){
 
   initGUI();
 
-  const lights = new LightHelper( scene, gui );
+  const lightsMenu = new LightHelper( scene, gui );
+  const cameraMenu = new CameraHelper( scene, camera, gui, control );
 }
 
 /**
@@ -296,16 +281,6 @@ function animate() {
 // Update on Change
 function update() {
   renderer.toneMappingExposure = parameters.exposure;
-
-  dirLightUpdate( dirLight, parameters );
-
-  // pmrem.updateAngle( parameters.envAngle );
-
-  /**
-   * @function Toggle Camera
-   * UNEXPOSED -> Debugger
-   * cameraUpdate( camera, parameters );
-   */
 }
 
 /**
@@ -329,28 +304,6 @@ function initScene() {
 function initLight() {
   ambientLight = new THREE.AmbientLight( 0xffffff, 1 );
   // scene.add( ambientLight );
-
-  dirLight = new THREE.DirectionalLight( 0xffffff );
-  dirLightUpdate( dirLight, parameters );
-  dirLight.castShadow = true;
-  dirLight.shadow.camera.right = 17;
-  dirLight.shadow.camera.left = - 17;
-  dirLight.shadow.camera.top	= 17;
-  dirLight.shadow.camera.bottom = - 17;
-  dirLight.shadow.mapSize.width = 512;
-  dirLight.shadow.mapSize.height = 512;
-  dirLight.shadow.bias = - 0.0005;
-  // scene.add( dirLight );
-
-  hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
-  // scene.add( hemiLight );
-
-  spotLight = new THREE.SpotLight();
-  spotLight.angle = Math.PI / 16;
-  spotLight.penumbra = 0.5;
-  // spotLight.castShadow = true;
-  spotLight.position.set( - 1, 1, 1 );
-  // scene.add( spotLight );
 }
 
 // Shadow
@@ -491,43 +444,42 @@ function initGUI() {
 
   settingGUI( gui, parameters, renderer, fxaaPass, ambientLight );
 
-  // dirLightGUI( gui, parameters );
-
   bloomGUI( gui, parameters, bloomPass );
 
   // ssrGUI(gui, parameters, ssrPass);
 
   ssaoGUI( gui, parameters, ssaoPass );
 
-  /**
-   * @function Toggle Camera
-   * UNEXPOSED -> Debug Only
-   * cameraGUI( gui, parameters );
-   */
   gui.open();
 }
 
 const save = new function() {
   this.saveSettings = function () {
-    dirlightLog( dirLight, parameters );
-    // cameraLog( camera, parameters );
+    console.log(parameters);
   }
 }
 
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  composer.setSize( window.innerWidth, window.innerHeight );
+  backgroundFit( background );
+}
+
+function isMobile() {
+  return navigator.userAgent.match (/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
+}
 /**
  * @summary Vue Mount ##################################################################################################
  */
 onMounted(() => {
   window.createImageBitmap = undefined; // Fix iOS Bug
   initThree();
-  window.onresize = function (){
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    composer.setSize( window.innerWidth, window.innerHeight );
-    backgroundFit( background );
+  window.addEventListener( 'resize', onWindowResize);
+  if ( isMobile() ){
+    gui.close();
   }
-  window.createImageBitmap = undefined;
 })
 
 </script>

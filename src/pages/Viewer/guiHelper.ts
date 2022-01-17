@@ -8,7 +8,7 @@ export function settingGUI( gui: any, parameters: any, renderer: any, fxaaPass: 
     // settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
     ambientLightGUI( settingGUI, ambientLight );
     settingGUI.add( parameters, 'exposure', 0, 2, 0.01).name('HDR Exposure');
-    settingGUI.add( parameters, 'enablePostprocessing').name('Enable Postprocssing');
+    settingGUI.add( parameters, 'enablePostprocessing').name('Postprocssing');
     settingGUI.add( parameters.enable, 'FXAA').name('Enable FXAA').onChange(function (){
         fxaaPass.enabled = parameters.enable.FXAA;
     });
@@ -53,30 +53,6 @@ export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
     ssaoGUI.add( ssaoPass, 'kernelRadius', 0, 5, 0.001).name('Kernel Radius');
     ssaoGUI.add( ssaoPass, 'minDistance', 0.000001, 0.00002).name('Min Distance');
     ssaoGUI.add( ssaoPass, 'maxDistance', 0.000002, 0.001).name('Max Distance');
-}
-
-export function dirLightGUI(gui: any, parameters: any ) {
-    const dirLightGUI = gui.addFolder('Directional Light Setting');
-    dirLightGUI.add( parameters.light, 'intensity', 0, 10, 0.01).name('Light Intensity');
-    dirLightGUI.add( parameters.light, 'r', 0, 50, 0.01).name('Rotate Radius');
-    dirLightGUI.add( parameters.light, 'a', -360, 360, 0.5).name('Rotate Angle');
-    dirLightGUI.add( parameters.light, 'h', 1, 20, 0.01).name('Light Height');
-    dirLightGUI.add( parameters.light.shadow, 'near', 0, 0.5, 0.001).name('Shadow Near');
-    dirLightGUI.add( parameters.light.shadow, 'far', 10, 500, 1).name('Shadow Far');
-    dirLightGUI.add( parameters.light.shadow, 'radius', 1, 10, 0.01).name('Shadow Radius');
-    dirLightGUI.add( parameters.light.shadow, 'blurSamples', 1, 10, 1).name('Shadow Blur Samples');
-}
-
-export function dirLightUpdate(dirLight: any, parameters: any ) {
-    // dirLight.position.set( parameters.light.x, parameters.light.y, parameters.light.z );
-    let x = parameters.light.r * Math.cos( parameters.light.a * Math.PI / 180);
-    let z = parameters.light.r * Math.sin( parameters.light.a * Math.PI / 180);
-    dirLight.position.set( x, parameters.light.h, z);
-    dirLight.intensity = parameters.light.intensity;
-    dirLight.shadow.camera.near = parameters.light.shadow.near;
-    dirLight.shadow.camera.far = parameters.light.shadow.far;
-    dirLight.shadow.radius = parameters.light.shadow.radius;
-    dirLight.shadow.blurSamples = parameters.light.shadow.blurSamples;
 }
 
 export function dirlightLog( dirLight: any, parameters: any ) {
