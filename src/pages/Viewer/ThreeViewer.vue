@@ -8,13 +8,9 @@
 // Vue
 import * as THREE from 'three/';
 import {onBeforeMount, onBeforeUpdate, onDeactivated, onMounted, onUnmounted, onUpdated} from "vue";
-import {
-  settingGUI,
-  toneMappingGUI,
-  ambientLightGUI,
-} from "./guiHelper";
-import { toneMappingOptions } from './guiHelper';
-import { addPlane, addTestObjects } from "./debugHelper";
+import { settingGUI } from "./GUIHelper";
+import { toneMappingOptions } from './GUIHelper';
+import { addPlane, addTestObjects } from "./DebugHelper";
 // Three.js
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import Stats from  'three/examples/jsm/libs/stats.module' //Display FPS
@@ -35,6 +31,7 @@ import { CameraHelper } from './CameraHelper';
 import { PostHelper } from "./PostHelper";
 // import { PMREMGenerator} from "three";
 import { PMREMGenerator } from "./PMREMGenerator";
+import {initRenderer, initCanvas, initStats, initCamera, initScene, initAmbient, initShadow} from "./InitHelper";
 
 
 
@@ -44,9 +41,10 @@ Global Variables
 let scene, camera, renderer, canvas;
 let gui, stats;
 let object, model;
+let lights, control;
 // For customized touch events
 // Light;
-let ambientLight, background, pmrem, hdr;
+let ambient, background, pmrem, hdr;
 // Postprocessing
 let composer;
 // Global Variable for Three.js
@@ -63,61 +61,34 @@ let parameters = {
   }
 }
 
-/**
- * @summary Three Initiation ###########################################################################################
- */
-// Renderer
-function initRenderer() {
-  renderer = new THREE.WebGLRenderer({antialias: true});
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  /**
-   * @function Gamma
-   * DISCARD -> UNAVAILABLE
-   */
-  renderer.physicallyCorrectLights = true;
-  // renderer.gammaOutput = true;
-  // renderer.gammaFactor = 2.2;
-}
-
-// Canvas
-function initCanvas() {
-  canvas = document.getElementById('three-canvas');
-  let child = canvas.lastElementChild;
-  while (child) {
-    canvas.removeChild(child);
-    child = canvas.lastElementChild;
-  }
-  canvas.appendChild( renderer.domElement );
-  stats = new Stats();
-  canvas.appendChild( stats.dom );
-}
-
 
 /**
  * @summary Three.js Main ##############################################################################################
  */
 function initThree (){
 
-  initRenderer();
+  // initRenderer();
 
-  initCamera();
+  renderer = initRenderer();
+  canvas = initCanvas( renderer );
 
-  initScene();
+  stats = initStats();
+  canvas.appendChild( stats.dom );
 
-  initCanvas();
+  camera = initCamera();
+  scene = initScene();
 
-  initAmbient();
-
-  initShadow();
+  ambient = initAmbient();
+  scene.add( ambient );
+  initShadow( renderer );
 
   initGUI();
-
+  initPost();
   // addPlane( scene );
   // addTestObjects( scene );
+  lights = new LightHelper( scene, gui );
+  control = new CameraHelper( scene, camera, canvas, gui );
 
-  const lightsMenu = new LightHelper( scene, gui );
-  const cameraMenu = new CameraHelper( scene, camera, canvas, gui );
-  initPost();
 
   pmrem = new PMREMGenerator( renderer );
 
@@ -152,24 +123,11 @@ function initThree (){
               if (child instanceof THREE.Mesh) {
                 console.log(child.material);
                 roughnessMipmapper.generateMipmaps(child.material);
-                // noinspection JSUnresolvedVariable
-                // ssrPass.metalnessMap = child.material.metalnessMap;
-                // child.material.envMap = camera.renderTarget.texture;
                 child.castShadow = true;
                 child.receiveShadow = true;
-                // noinspection JSUnresolvedVariable
                 child.material.aoIntensity = 0;
                 child.material.aoMap = null;
                 object.add( child );
-                // scene.add( child );
-                /**
-                 * @function Disable AO
-                 * DISCARD
-                 * for debug only
-                child.material.aoIntensity = 0;
-                child.material.aoMap = null;
-                scene.add(child);
-                 */
                 /**
                  * @function View ARM
                  * DISCARD -> RECONSTRUCT
@@ -184,7 +142,6 @@ function initThree (){
                  */
               }
             })
-            // object = gltf.scene;
             object.rotation.y = 180 * Math.PI / 180;
             scene.add(object);
             roughnessMipmapper.dispose();
@@ -219,35 +176,6 @@ function animate() {
 // Update on Change
 function update() {
   renderer.toneMappingExposure = parameters.exposure;
-}
-
-/**
- * @summary Environment Setting ########################################################################################
- */
-// Camera
-function initCamera() {
-  camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
-  camera.position.set( 0, -1, -15 );
-  camera.lookAt( 0, -1.5 ,0 );
-}
-
-// Scene
-function initScene() {
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0xa0a0a0 );
-  // scene.fog = new THREE.Fog( 0x443333, 1, 4 );
-}
-
-// Ambient
-function initAmbient() {
-  ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
-  scene.add( ambientLight );
-}
-
-// Shadow
-function initShadow() {
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.VSMShadowMap;
 }
 
 
@@ -287,7 +215,7 @@ function initGUI() {
       }
   );
 
-  settingGUI( gui, parameters, renderer, ambientLight );
+  settingGUI( gui, parameters, renderer, ambient );
 
   gui.open();
 }
@@ -342,6 +270,7 @@ function clearAll( parent, child ){
   parent.remove( child );
 }
 
+
 /**
  * @summary Vue Mount ##################################################################################################
  */
@@ -359,11 +288,6 @@ onUnmounted(() => {
   clearAll( scene, object );
   renderer.dispose();
   gui.destroy();
-})
-
-onDeactivated(() => {
-  console.log('DEACTIVATED')
-  gui.dispose();
 })
 </script>
 

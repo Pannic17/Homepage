@@ -1,17 +1,17 @@
 // noinspection TypeScriptValidateJSTypes
 import * as THREE from 'three/';
 
-export function settingGUI( gui: any, parameters: any, renderer: any, ambientLight: any ) {
+export function settingGUI( gui: any, parameters: any, renderer: any, ambient: any ) {
     const settingGUI = gui.addFolder('Settings');
     // settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
-    ambientLightGUI( settingGUI, ambientLight );
+    ambientGUI( settingGUI, ambient );
     settingGUI.add( parameters, 'exposure', 0, 2, 0.01).name('HDR Exposure');
     settingGUI.add( parameters, 'enablePostprocessing').name('Postprocssing');
     toneMappingGUI( settingGUI, parameters, renderer );
 }
 
-export function ambientLightGUI( gui: any, ambientLight: any) {
-    gui.add( ambientLight, 'intensity', 0, 10, 0.01).name('Ambient Intensity');
+function ambientGUI( gui: any, ambientLight: any) {
+    gui.add( ambientLight, 'intensity', 0, 5, 0.01).name('Ambient Intensity');
 }
 
 export const toneMappingOptions = {
@@ -22,7 +22,7 @@ export const toneMappingOptions = {
     ACESFilmic: THREE.ACESFilmicToneMapping
 };
 
-export function toneMappingGUI( gui: any, parameters: any, renderer: any ) {
+function toneMappingGUI( gui: any, parameters: any, renderer: any ) {
     gui.add( parameters, 'toneMapping',
         Object.keys(toneMappingOptions)
     ).onChange( function () {
