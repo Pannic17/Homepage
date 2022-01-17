@@ -39,7 +39,6 @@ class SSRPass extends Pass {
 		this.groundReflector = groundReflector;
 
 		this.opacity = SSRShader.uniforms.opacity.value;
-		this.defaultIntesntiy = 1;
 		this.output = 0;
 
 		this.maxDistance = SSRShader.uniforms.maxDistance.value;
@@ -48,7 +47,7 @@ class SSRPass extends Pass {
 		this.tempColor = new Color();
 
 		this._selects = selects;
-		this.selective = Array.isArray( this._selects );
+		// this.selective = Array.isArray( this._selects );
 
 		Object.defineProperty( this, 'selects', {
 			get() {
