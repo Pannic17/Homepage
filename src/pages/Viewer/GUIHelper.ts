@@ -23,9 +23,11 @@ export const toneMappingOptions = {
 };
 
 function toneMappingGUI( gui: any, parameters: any, renderer: any ) {
+    // noinspection TypeScriptValidateJSTypes
     gui.add( parameters, 'toneMapping',
         Object.keys(toneMappingOptions)
     ).onChange( function () {
+        // @ts-ignore
         renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
     }).name('Tone Mapping');
 }
