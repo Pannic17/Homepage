@@ -7,13 +7,12 @@
 <script setup>
 // Vue
 import * as THREE from 'three/';
-import {onBeforeMount, onBeforeUpdate, onDeactivated, onMounted, onUnmounted, onUpdated} from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { settingGUI } from "./GUIHelper";
 import { toneMappingOptions } from './GUIHelper';
-import { addPlane, addTestObjects } from "./DebugHelper";
+// import { addPlane, addTestObjects } from "./DebugHelper";
 // Three.js
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
-import Stats from  'three/examples/jsm/libs/stats.module' //Display FPS
 // Loader
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";

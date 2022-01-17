@@ -6,7 +6,6 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 // Pass
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
-import { TAARenderPass } from "three/examples/jsm/postprocessing/TAARenderPass.js";
 // Customize
 import { SSRPass } from "./SSRPass";
 import { SSAOPass } from "./SSAOPass";
@@ -155,13 +154,6 @@ class PostHelper {
         ssaoGUI.add( ssaoPass, 'minDistance', 0.000001, 0.00002).name('Min Distance');
         ssaoGUI.add( ssaoPass, 'maxDistance', 0.000002, 0.001).name('Max Distance');
         ssaoGUI.add( ssaoPass, 'contrast', 0, 2).name('Level');
-    }
-
-    initTAA() {
-        let taaPass = new TAARenderPass( scene, camera);
-        taaPass.unbiased = false;
-        taaPass.sampleLevel = 1;
-        return taaPass
     }
 
     initFXAA() {

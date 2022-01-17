@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
-import exp from "constants";
 
 export function initRenderer() {
     const renderer = new THREE.WebGLRenderer({antialias: true});
