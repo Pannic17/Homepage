@@ -7,28 +7,20 @@
 <script setup>
 // Vue
 import * as THREE from 'three/';
-import { onMounted } from "vue";
+import {onBeforeMount, onBeforeUpdate, onDeactivated, onMounted, onUnmounted, onUpdated} from "vue";
 import {
   settingGUI,
-  ssrGUI,
-  ssaoGUI,
-  dirlightLog,
   toneMappingGUI,
-  bloomGUI, ambientLightGUI,
+  ambientLightGUI,
 } from "./guiHelper";
 import { toneMappingOptions } from './guiHelper';
-import {addPlane, addTestObjects} from "./debugHelper";
-// import { onSingleTouchStart, onSingleTouchMove, onDoubleTouchStart, onDoubleTouchMove} from "./touchHelper";
+import { addPlane, addTestObjects } from "./debugHelper";
 // Three.js
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import Stats from  'three/examples/jsm/libs/stats.module' //Display FPS
 // Loader
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-import { RGBMLoader } from 'three/examples/jsm/loaders/RGBMLoader';
-import { HDRCubeTextureLoader } from 'three/examples/jsm/loaders/HDRCubeTextureLoader.js';
-// Control
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // Material
 import { RoughnessMipmapper } from 'three/examples/jsm/utils/RoughnessMipmapper.js';
 // Postprocessing
@@ -36,19 +28,8 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 // SSR & SSAO
-import { SSRPass } from './SSRPass';
-import { SSAOPass } from './SSAOPass';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
-import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-import { BloomPass } from 'three/examples/jsm/postprocessing/BloomPass';
-import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
-// Shader
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
-import { TAARenderPass } from 'three/examples/jsm/postprocessing/TAARenderPass.js';
 // DEBUG
-import { DebugEnvironment } from 'three/examples/jsm/environments/DebugEnvironment.js';
-import { MathUtils, Vector3, Texture } from "three";
 import { LightHelper } from "./LightHelper";
 import { CameraHelper } from './CameraHelper';
 import { PostHelper } from "./PostHelper";
@@ -61,49 +42,24 @@ import { PMREMGenerator } from "./PMREMGenerator";
 Global Variables
  */
 let scene, camera, renderer, canvas;
-let control, gui, stats;
+let gui, stats;
 let object, model;
 // For customized touch events
-let speed = 0.001;
 // Light;
 let ambientLight, background, pmrem, hdr;
 // Postprocessing
 let composer;
-let ssrPass, ssaoPass, ssrrPass;
-let taaPass, fxaaPass;
-let bloomPass, filmEffect;
-
 // Global Variable for Three.js
 let parameters = {
   envMap: 'HDR',
   envAngle: 0,
   autoPlay: false,
   enablePostprocessing: true,
-  enableBloom: true,
   exposure: 1.0,
   toneMapping: 'ACESFilmic',
-  camera: {
-    position: {
-      x: 0,
-      y: -3,
-      z: -15,
-    },
-    lookAt: {
-      x: 0,
-      y: -1.5,
-      z: 0,
-    }
-
-  },
   maps: {
     arm: null,
     env: null,
-  },
-  enable: {
-    bloom: false,
-    SSR: false,
-    SSAO: true,
-    FXAA: false
   }
 }
 
@@ -119,7 +75,6 @@ function initRenderer() {
    * DISCARD -> UNAVAILABLE
    */
   renderer.physicallyCorrectLights = true;
-
   // renderer.gammaOutput = true;
   // renderer.gammaFactor = 2.2;
 }
@@ -138,29 +93,10 @@ function initCanvas() {
 }
 
 
-// Controls
-function initControl() {
-  control = new OrbitControls(camera, canvas);
-  control.enableDamping = true;
-  control.rotateSpeed = speed*1000;
-  control.maxDistance = 100;
-  control.target = new THREE.Vector3(0, 0, 0);
-  initTouch();
-}
-
-function initTouch() {
-  control.touches = {
-    ONE: THREE.TOUCH.ROTATE,
-    TWO: THREE.TOUCH.DOLLY_PAN
-  }
-}
-
-
 /**
  * @summary Three.js Main ##############################################################################################
  */
 function initThree (){
-
 
   initRenderer();
 
@@ -170,9 +106,7 @@ function initThree (){
 
   initCanvas();
 
-  // initControl();
-
-  initLight();
+  initAmbient();
 
   initShadow();
 
@@ -181,6 +115,8 @@ function initThree (){
   // addPlane( scene );
   // addTestObjects( scene );
 
+  const lightsMenu = new LightHelper( scene, gui );
+  const cameraMenu = new CameraHelper( scene, camera, canvas, gui );
   initPost();
 
   pmrem = new PMREMGenerator( renderer );
@@ -260,10 +196,6 @@ function initThree (){
 
       pmrem.dispose();
     });
-
-
-  const lightsMenu = new LightHelper( scene, gui );
-  const cameraMenu = new CameraHelper( scene, camera, canvas, gui );
 }
 
 /**
@@ -277,7 +209,7 @@ function animate() {
   if (parameters.enablePostprocessing){
     composer.render();
   } else {
-    renderer.render(scene, camera);
+    renderer.render( scene, camera );
   }
   requestAnimationFrame(animate);
   update()
@@ -295,8 +227,8 @@ function update() {
 // Camera
 function initCamera() {
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
-  camera.position.set(0,-1,-15);
-  camera.lookAt(0,-1.5,0);
+  camera.position.set( 0, -1, -15 );
+  camera.lookAt( 0, -1.5 ,0 );
 }
 
 // Scene
@@ -306,8 +238,8 @@ function initScene() {
   // scene.fog = new THREE.Fog( 0x443333, 1, 4 );
 }
 
-// Lights
-function initLight() {
+// Ambient
+function initAmbient() {
   ambientLight = new THREE.AmbientLight( 0xffffff, 0.2 );
   scene.add( ambientLight );
 }
@@ -318,15 +250,6 @@ function initShadow() {
   renderer.shadowMap.type = THREE.VSMShadowMap;
 }
 
-function backgroundFit( texture ) {
-  const targetAspect = window.innerWidth / window.innerHeight;
-  const imageAspect = texture.image.width / texture.image.height;
-  const factor = imageAspect / targetAspect;
-  scene.background.offset.x = factor > 1 ? (1 - 1 / factor) / 2 : 0;
-  scene.background.repeat.x = factor > 1 ? 1 / factor : 1;
-  scene.background.offset.y = factor > 1 ? 0 : (1 - factor) / 2;
-  scene.background.repeat.y = factor > 1 ? 1 : factor;
-}
 
 /**
  * @summary Postprocessing #############################################################################################
@@ -334,102 +257,16 @@ function backgroundFit( texture ) {
 function initPost() {
   composer = new EffectComposer( renderer );
 
-  // initSSR();
-
-  // initSSAO();
-
-  // initFXAA();
-
-  // initBloom();
-
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
 
-  const postprocessing = new PostHelper( scene, composer, camera, renderer, gui);
-  // composer.addPass( ssaoPass );
-  // composer.addPass( ssrPass );
-  // composer.addPass( bloomPass );
+  const postprocessing = new PostHelper( scene, composer, camera, renderer, gui );
+
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
   renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
 
   composer.addPass( postprocessing.getFXAA() );
-  // composer.addPass( fxaaPass );
-}
-
-// Bloom Effect
-function initBloom() {
-  bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      1.5, 4, 1);
-  bloomPass.enabled = false;
-}
-
-// SSR Pass
-function initSSR() {
-  // composer = new EffectComposer( renderer );
-  ssrPass = new SSRPass({
-    renderer,
-    scene,
-    camera,
-    width: innerWidth,
-    height: innerHeight,
-    // encoding: THREE.sRGBEncoding,
-  })
-
-  ssrPass.thickness = 0.1;
-  ssrPass.infiniteThick = false;
-  ssrPass.maxDistance = 5;
-  ssrPass.opacity = 1;
-  ssrPass.surfDist = 0.001;
-}
-
-// SSAO Pass
-function initSSAO() {
-  ssaoPass = new SSAOPass(
-      scene,
-      camera,
-      innerWidth,
-      innerHeight
-  )
-  ssaoPass.kernelRadius = 0.75;
-  ssaoPass.minDistance = 0.00001;
-
-  let customKernelSize = 32;
-
-  ssaoPass.ssaoMaterial.defines[ 'KERNEL_SIZE' ] = customKernelSize;
-  ssaoPass.kernelSize = customKernelSize;
-
-  // Override Internal Kernel
-  for ( let i = 0; i < (customKernelSize-32); i ++ ) {
-
-    const sample = new Vector3();
-    sample.x = ( Math.random() * 2 ) - 1;
-    sample.y = ( Math.random() * 2 ) - 1;
-    sample.z = Math.random();
-
-    sample.normalize();
-
-    let scale = i / (customKernelSize-32);
-    scale = MathUtils.lerp( 0.1, 1, scale * scale );
-    sample.multiplyScalar( scale );
-
-    // ssaoPass.ssaoMaterial.uniforms[ 'kernel' ].value.push(sample);
-
-  }
-
-  // console.log(ssaoPass.kernelSize)
-  // console.log(ssaoPass.kernel);
-}
-
-function initTAA() {
-  taaPass = new TAARenderPass( scene, camera);
-  taaPass.unbiased = false;
-  taaPass.sampleLevel = 1;
-}
-
-function initFXAA() {
-  fxaaPass = new ShaderPass( FXAAShader );
 }
 
 
@@ -450,15 +287,29 @@ function initGUI() {
       }
   );
 
-  settingGUI( gui, parameters, renderer, fxaaPass, ambientLight );
+  settingGUI( gui, parameters, renderer, ambientLight );
 
   gui.open();
 }
 
 const save = new function() {
   this.saveSettings = function () {
-    console.log(parameters);
+    console.log( parameters );
   }
+}
+
+
+/**
+ * @summary Helper Tools ###############################################################################################
+ */
+function backgroundFit( texture ) {
+  const targetAspect = window.innerWidth / window.innerHeight;
+  const imageAspect = texture.image.width / texture.image.height;
+  const factor = imageAspect / targetAspect;
+  scene.background.offset.x = factor > 1 ? (1 - 1 / factor) / 2 : 0;
+  scene.background.repeat.x = factor > 1 ? 1 / factor : 1;
+  scene.background.offset.y = factor > 1 ? 0 : (1 - factor) / 2;
+  scene.background.repeat.y = factor > 1 ? 1 : factor;
 }
 
 function onWindowResize() {
@@ -472,6 +323,25 @@ function onWindowResize() {
 function isMobile() {
   return navigator.userAgent.match (/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
 }
+
+function clearAll( parent, child ){
+  if( child.children.length ){
+    let arr  = child.children.filter( x => x );
+    arr.forEach( a=> {
+      clearAll( child, a )
+    })
+  }
+  if( child instanceof THREE.Mesh ){
+    if( child.material.map ) child.material.map.dispose();
+    child.material.dispose();
+    child.geometry.dispose();
+  }else if( child.material ){
+    child.material.dispose();
+  }
+  child.remove();
+  parent.remove( child );
+}
+
 /**
  * @summary Vue Mount ##################################################################################################
  */
@@ -484,7 +354,19 @@ onMounted(() => {
   }
 })
 
+onUnmounted(() => {
+  console.log('UNMOUNTED')
+  clearAll( scene, object );
+  renderer.dispose();
+  gui.destroy();
+})
+
+onDeactivated(() => {
+  console.log('DEACTIVATED')
+  gui.dispose();
+})
 </script>
+
 
 <script>
 export default {

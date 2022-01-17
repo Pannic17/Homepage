@@ -1,71 +1,13 @@
 // noinspection TypeScriptValidateJSTypes
 import * as THREE from 'three/';
-import { SSRPass } from './SSRPass.js';
-import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
 
-export function settingGUI( gui: any, parameters: any, renderer: any, fxaaPass: any, ambientLight: any ) {
+export function settingGUI( gui: any, parameters: any, renderer: any, ambientLight: any ) {
     const settingGUI = gui.addFolder('Settings');
     // settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
     ambientLightGUI( settingGUI, ambientLight );
     settingGUI.add( parameters, 'exposure', 0, 2, 0.01).name('HDR Exposure');
     settingGUI.add( parameters, 'enablePostprocessing').name('Postprocssing');
     toneMappingGUI( settingGUI, parameters, renderer );
-}
-
-export function ssrGUI( gui: any, parameters: any, ssrPass: any ) {
-    const ssrGUI = gui.addFolder('SSR Setting').close();
-    ssrGUI.add( parameters.enable, 'SSR').name('Enable SSR').onChange(function (){
-        ssrPass.enabled = parameters.enable.SSR;
-    })
-    ssrGUI.add( ssrPass, 'output', {
-        'Default': SSRPass.OUTPUT.Default,
-        'SSR Only': SSRPass.OUTPUT.SSR,
-        'Depth': SSRPass.OUTPUT.Depth,
-        'Normal': SSRPass.OUTPUT.Normal,
-        'Metalness': SSRPass.OUTPUT.Metalness,
-        'Roughness': SSRPass.OUTPUT.Roughness,
-    }).onChange( function(value: any) {
-        ssrPass.output = parseInt( value );
-    }).name('Output Mode');
-    ssrGUI.add( ssrPass, 'maxDistance', 0, 5, 0.2).name('Max Distance');
-    ssrGUI.add( ssrPass, 'opacity', 0, 1, 0.01).name('Opacity');
-    ssrGUI.add( ssrPass, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance');
-}
-
-export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
-    const ssaoGUI = gui.addFolder('SSAO Setting').close();
-    ssaoGUI.add( parameters.enable, 'SSAO').name('Enable SSAO').onChange(function (){
-        ssaoPass.enabled = parameters.enable.SSAO;
-    })
-    ssaoGUI.add( ssaoPass, 'output', {
-        'Default': SSAOPass.OUTPUT.Default,
-        'SSAO Only': SSAOPass.OUTPUT.SSAO,
-        'SSAO Only + Blur': SSAOPass.OUTPUT.Blur,
-        'Beauty': SSAOPass.OUTPUT.Beauty,
-        'Depth': SSAOPass.OUTPUT.Depth,
-        'Normal': SSAOPass.OUTPUT.Normal
-    }).onChange( function (value: any) {
-        ssaoPass.output = parseInt( value );
-    }).name('Output Mode');
-    ssaoGUI.add( ssaoPass, 'kernelRadius', 0, 5, 0.001).name('Kernel Radius');
-    ssaoGUI.add( ssaoPass, 'minDistance', 0.000001, 0.00002).name('Min Distance');
-    ssaoGUI.add( ssaoPass, 'maxDistance', 0.000002, 0.001).name('Max Distance');
-    ssaoGUI.add( ssaoPass, 'contrast', 0, 2).name('Level');
-}
-
-export function dirlightLog( dirLight: any, parameters: any ) {
-    let x = parameters.light.r * Math.cos( parameters.light.a * Math.PI / 180);
-    let z = parameters.light.r * Math.sin( parameters.light.a * Math.PI / 180);
-    console.log('### Directional Light Settings\n' +
-        'x: ' + x + ';\n' +
-        'y: ' + parameters.light.h + ';\n' +
-        'z: ' + z + ';\n' +
-        'radius: ' + parameters.light.r + ';\n' +
-        'angle: ' + parameters.light.a + ';\n' +
-        'intensity: ' + parameters.light.intensity + ';\n' +
-        'shadow radius: ' + parameters.light.shadow.radius + ';\n' +
-        'shadow sample: ' + parameters.light.shadow.blurSamples + ';'
-    )
 }
 
 export function ambientLightGUI( gui: any, ambientLight: any) {
@@ -86,14 +28,4 @@ export function toneMappingGUI( gui: any, parameters: any, renderer: any ) {
     ).onChange( function () {
         renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
     }).name('Tone Mapping');
-}
-
-export function bloomGUI( gui: any, parameters: any, bloomPass: any ) {
-    const bloomGUI = gui.addFolder('Bloom Setting').close();
-    bloomGUI.add( parameters.enable, 'bloom').name('Enable Bloom').onChange(function (){
-        bloomPass.enabled = parameters.enable.bloom;
-    });
-    bloomGUI.add( bloomPass, 'strength', 0, 3, 0.002).name('Strength');
-    bloomGUI.add( bloomPass, 'radius', 0, 10, 0.01).name('Radius');
-    bloomGUI.add( bloomPass, 'threshold', 0, 1, 0.001).name('Threshold');
 }
