@@ -668,9 +668,10 @@ class SSRPass extends Pass {
 			 */
 
 			if ( child.material instanceof MeshStandardMaterial || child.material instanceof MeshPhysicalMaterial ){
-				this.metalnessMaterial.color.r = 1;
-				this.metalnessMaterial.color.g = 1;
+				this.metalnessMaterial.color.r = 0;
+				this.metalnessMaterial.color.g = 0;
 				this.metalnessMaterial.color.b = 1;
+
 				this.metalnessMaterial.map = child.material.metalnessMap;
 			} else {
 				this.metalnessMaterial.color.setScalar( this.defaultIntensity );
@@ -717,9 +718,9 @@ class SSRPass extends Pass {
 		this.scene.traverseVisible( child => {
 
 			if ( child.material instanceof MeshStandardMaterial || child.material instanceof MeshPhysicalMaterial ){
-				this.roughnessMaterial.color.r = 0.5;
-				this.roughnessMaterial.color.g = 0.5;
-				this.roughnessMaterial.color.b = 0.5;
+				this.roughnessMaterial.color.r = 0;
+				this.roughnessMaterial.color.g = 1;
+				this.roughnessMaterial.color.b = 0;
 				this.roughnessMaterial.map = child.material.roughnessMap;
 			} else {
 				this.roughnessMaterial.color.setScalar( this.defaultIntensity );

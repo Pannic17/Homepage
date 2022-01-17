@@ -151,7 +151,7 @@ var SSRShader = {
 		}
 		void main(){
 			
-			float metalness=texture2D(tMetalness,vUv).r;
+			float metalness=texture2D(tMetalness,vUv).b;
 			if(metalness==0.) return;
 
 			float depth = getDepth( vUv );

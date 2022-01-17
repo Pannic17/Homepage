@@ -40,7 +40,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 // SSR & SSAO
 import { SSRPass } from './SSRPass';
-import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass';
+import { SSAOPass } from './SSAOPass';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
 import { ReflectorForSSRPass } from 'three/examples/jsm/objects/ReflectorForSSRPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
@@ -61,8 +61,9 @@ import { PMREMGenerator } from "./PMREMGenerator";
 /*
 Global Variables
  */
-let scene, camera, renderer, canvas, object;
+let scene, camera, renderer, canvas;
 let control, gui, stats;
+let object, model;
 // For customized touch events
 let speed = 0.001;
 // Light;
@@ -85,7 +86,7 @@ let parameters = {
   camera: {
     position: {
       x: 0,
-      y: 2,
+      y: -3,
       z: -15,
     },
     lookAt: {
@@ -101,8 +102,8 @@ let parameters = {
   },
   enable: {
     bloom: false,
-    SSR: true,
-    SSAO: false,
+    SSR: false,
+    SSAO: true,
     FXAA: false
   }
 }
@@ -170,7 +171,7 @@ function initThree (){
 
   initCanvas();
 
-  initControl();
+  // initControl();
 
   initLight();
 
@@ -209,6 +210,7 @@ function initThree (){
       loader.load(
           '/model/owl_gltf/1.gltf',
           function (gltf) {
+            object = new THREE.Group();
             gltf.scene.traverse( function (child) {
               if (child instanceof THREE.Mesh) {
                 console.log(child.material);
@@ -219,6 +221,10 @@ function initThree (){
                 child.castShadow = true;
                 child.receiveShadow = true;
                 // noinspection JSUnresolvedVariable
+                child.material.aoIntensity = 0;
+                child.material.aoMap = null;
+                object.add( child );
+                // scene.add( child );
                 /**
                  * @function Disable AO
                  * DISCARD
@@ -241,7 +247,7 @@ function initThree (){
                  */
               }
             })
-            object = gltf.scene;
+            // object = gltf.scene;
             object.rotation.y = 180 * Math.PI / 180;
             scene.add(object);
             roughnessMipmapper.dispose();
@@ -257,7 +263,7 @@ function initThree (){
   initGUI();
 
   const lightsMenu = new LightHelper( scene, gui );
-  const cameraMenu = new CameraHelper( scene, camera, gui, control );
+  const cameraMenu = new CameraHelper( scene, camera, canvas, gui );
 }
 
 /**
@@ -303,7 +309,7 @@ function initScene() {
 // Lights
 function initLight() {
   ambientLight = new THREE.AmbientLight( 0xffffff, 1 );
-  // scene.add( ambientLight );
+  scene.add( ambientLight );
 }
 
 // Shadow
@@ -339,7 +345,7 @@ function initPost() {
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
   composer.addPass( ssaoPass );
-  // composer.addPass( ssrPass );
+  composer.addPass( ssrPass );
   composer.addPass( fxaaPass );
   composer.addPass( new ShaderPass( GammaCorrectionShader ));
 
@@ -410,8 +416,8 @@ function initSSAO() {
 
   }
 
-  console.log(ssaoPass.kernelSize)
-  console.log(ssaoPass.kernel);
+  // console.log(ssaoPass.kernelSize)
+  // console.log(ssaoPass.kernel);
 }
 
 function initTAA() {
@@ -438,7 +444,7 @@ function initGUI() {
       function (value) {
         let hdrTexture = pmrem.fromEquirectangular( hdr, value ).texture;
         scene.environment = hdrTexture;
-        scene.background = hdrTexture;
+        // scene.background = hdrTexture;
       }
   );
 
@@ -446,7 +452,7 @@ function initGUI() {
 
   bloomGUI( gui, parameters, bloomPass );
 
-  // ssrGUI(gui, parameters, ssrPass);
+  ssrGUI(gui, parameters, ssrPass);
 
   ssaoGUI( gui, parameters, ssaoPass );
 

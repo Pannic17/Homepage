@@ -88,24 +88,5 @@ float tk=max(minThickness,thickness);
 hit=away<=tk;
 #endif
 
-if(hit){
-    vec3 vN=getViewNormal( uv );
-    if(dot(viewReflectDir,vN)>=0.) continue;
-    float distance=pointPlaneDistance(vP,viewPosition,viewNormal);
-    if(distance>maxDistance) break;
-    float op=opacity;
-    #ifdef DISTANCE_ATTENUATION
-    float ratio=1.-(distance/maxDistance);
-    float attenuation=ratio*ratio;
-    op=opacity*attenuation;
-    #endif
-    #ifdef FRESNEL
-    float fresnelCoe=(dot(viewIncidentDir,viewReflectDir)+1.)/2.;
-    op*=fresnelCoe;
-    #endif
-    op*=metalness;
-    vec4 reflectColor=texture2D(tDiffuse,uv);
-    gl_FragColor.xyz=reflectColor.xyz;
-    gl_FragColor.a=op;
-    break;
-}
+
+float adjust = clamp((((1.0 - occlusion) - 1.0) * contrast + 1.0), 0.0, 1.0);

@@ -12,7 +12,7 @@ export function settingGUI( gui: any, parameters: any, renderer: any, fxaaPass: 
     settingGUI.add( parameters.enable, 'FXAA').name('Enable FXAA').onChange(function (){
         fxaaPass.enabled = parameters.enable.FXAA;
     });
-    toneMappingGUI( settingGUI, parameters, renderer);
+    toneMappingGUI( settingGUI, parameters, renderer );
 }
 
 export function ssrGUI( gui: any, parameters: any, ssrPass: any ) {
@@ -53,6 +53,7 @@ export function ssaoGUI( gui: any, parameters: any, ssaoPass: any ) {
     ssaoGUI.add( ssaoPass, 'kernelRadius', 0, 5, 0.001).name('Kernel Radius');
     ssaoGUI.add( ssaoPass, 'minDistance', 0.000001, 0.00002).name('Min Distance');
     ssaoGUI.add( ssaoPass, 'maxDistance', 0.000002, 0.001).name('Max Distance');
+    ssaoGUI.add( ssaoPass, 'contrast', 0, 2).name('Level');
 }
 
 export function dirlightLog( dirLight: any, parameters: any ) {

@@ -77,6 +77,32 @@ class LightHelper {
         return pointLight;
     }
 
+    initDirLight() {
+        let dirLight = new THREE.DirectionalLight( 0xffffff );
+        dirLight.position.set( 20, 15, 0.5);
+        dirLight.intensity = 0.5;
+        this.lightShadow( dirLight );
+        this.scene.add( dirLight );
+        this.lights.push( dirLight );
+        let index = this.lights.length;
+        this.dirLightGUI( index, dirLight );
+        return dirLight;
+    }
+
+    initHemiLight() {
+        let hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
+        this.scene.add( hemiLight );
+        this.lights.push( hemiLight );
+        let index = this.lights.length;
+        this.hemiLightGUI( index, hemiLight );
+        return hemiLight;
+    }
+
+    // ## TODO
+    initSpotLight() {
+        this.spotLightGUI();
+    }
+
     pointLightGUI( index, pointLight ){
         let lightName = '#' + index + ' PointLight';
         const pointLightGUI = this.gui.addFolder( lightName );
@@ -105,18 +131,6 @@ class LightHelper {
             _this.removeLight( pointLight, pointLightGUI );
         }
         pointLightGUI.add( setting, 'Remove');
-    }
-
-    initDirLight() {
-        let dirLight = new THREE.DirectionalLight( 0xffffff );
-        dirLight.position.set( 20, 15, 0.5);
-        dirLight.intensity = 0.5;
-        this.lightShadow( dirLight );
-        this.scene.add( dirLight );
-        this.lights.push( dirLight );
-        let index = this.lights.length;
-        this.dirLightGUI( index, dirLight );
-        return dirLight;
     }
 
     dirLightGUI( index, dirLight ){
@@ -149,25 +163,16 @@ class LightHelper {
         };
         let _this = this
         dirLightGUI.add( setting, 'Enable').onChange(function (){
-           if ( !setting.Enable ){
-               _this.scene.remove( dirLight );
-           } else {
-               _this.scene.add( dirLight );
-           }
+            if ( !setting.Enable ){
+                _this.scene.remove( dirLight );
+            } else {
+                _this.scene.add( dirLight );
+            }
         });
         function remove () {
             _this.removeLight( dirLight, dirLightGUI );
         }
         dirLightGUI.add( setting, 'Remove');
-    }
-
-    initHemiLight() {
-        let hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
-        this.scene.add( hemiLight );
-        this.lights.push( hemiLight );
-        let index = this.lights.length;
-        this.hemiLightGUI( index, hemiLight );
-        return hemiLight;
     }
 
     hemiLightGUI( index, hemiLight ) {
@@ -193,11 +198,6 @@ class LightHelper {
             _this.removeLight( hemiLight, hemiLightGUI );
         }
         hemiLightGUI.add( setting, 'Remove');
-    }
-
-    // ## TODO
-    initSpotLight() {
-        this.spotLightGUI();
     }
 
     spotLightGUI() {
