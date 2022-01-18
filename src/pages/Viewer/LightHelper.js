@@ -90,7 +90,6 @@ class LightHelper {
      * @summary Lights #################################################################################################
      */
     initPointLight( lightInfo ) {
-        console.log( lightInfo );
         let pointLight = new THREE.PointLight( lightInfo.color, lightInfo.intensity, lightInfo.distance );
         pointLight.position.set(3, 3, 3);
         this.lightShadow( pointLight );
@@ -102,7 +101,6 @@ class LightHelper {
     }
 
     initDirLight( lightInfo ) {
-        console.log( lightInfo );
         let dirLight = new THREE.DirectionalLight( lightInfo.color );
         let x = lightInfo.rotate.r * Math.cos( lightInfo.rotate.a * Math.PI / 180);
         let z = lightInfo.rotate.r * Math.sin( lightInfo.rotate.a * Math.PI / 180);
