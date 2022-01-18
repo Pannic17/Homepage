@@ -191,7 +191,7 @@ class SSAOPass extends Pass {
 
 	}
 
-	render( renderer, writeBuffer /*, readBuffer, deltaTime, maskActive */ ) {
+	render( renderer, writeBuffer, readBuffer /* deltaTime, maskActive */ ) {
 
 		// render beauty
 
@@ -261,7 +261,7 @@ class SSAOPass extends Pass {
 
 			case SSAOPass.OUTPUT.Default:
 
-				this.copyMaterial.uniforms[ 'tDiffuse' ].value = this.beautyRenderTarget.texture;
+				this.copyMaterial.uniforms[ 'tDiffuse' ].value = readBuffer.texture;
 				this.copyMaterial.blending = NoBlending;
 				this.renderPass( renderer, this.copyMaterial, this.renderToScreen ? null : writeBuffer );
 

@@ -19,11 +19,14 @@ class LightHelper {
             'Point': LightHelper.LIGHT.Point,
             'Directional': LightHelper.LIGHT.Directional,
             'Hemisphere': LightHelper.LIGHT.Hemisphere,
-            'Spot': LightHelper.LIGHT.Spot,
+            // 'Spot': LightHelper.LIGHT.Spot,
         }).name('Light Type');
         addMenu.add( this, 'addSelective').name('Add')
     }
 
+    /**
+     * @summary Selections #############################################################################################
+     */
     addSelective() {
         switch ( this.addSelection ) {
             case LightHelper.LIGHT.None:
@@ -37,9 +40,9 @@ class LightHelper {
             case LightHelper.LIGHT.Hemisphere:
                 this.initHemiLight();
                 break;
-            case LightHelper.LIGHT.Spot:
-                this.initSpotLight();
-                break;
+            // case LightHelper.LIGHT.Spot:
+            //     this.initSpotLight();
+            //     break;
         }
     }
 
@@ -64,6 +67,9 @@ class LightHelper {
         light.shadow.bias = - 0.0005;
     }
 
+    /**
+     * @summary Lights #################################################################################################
+     */
     initPointLight() {
         let pointLight = new THREE.PointLight(0xffffff, 40, 100);
         pointLight.position.set(3, 3, 3);
@@ -101,6 +107,9 @@ class LightHelper {
         this.spotLightGUI();
     }
 
+    /**
+     * @summary GUI ####################################################################################################
+     */
     pointLightGUI( index, pointLight ){
         let lightName = '#' + index + ' PointLight';
         const pointLightGUI = this.gui.addFolder( lightName );

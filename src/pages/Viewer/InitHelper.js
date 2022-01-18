@@ -5,6 +5,7 @@ export function initRenderer() {
     const renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.physicallyCorrectLights = true;
+    renderer.outputEncoding = THREE.sRGBEncoding;
     /**
      * @function Gamma
      * DISCARD -> UNAVAILABLE

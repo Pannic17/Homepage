@@ -69,13 +69,6 @@ class CameraHelper {
         return control
     }
 
-    initCamera() {
-        let camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
-        camera.position.set(0,-1,-15);
-        camera.lookAt(0,-1.5,0);
-        return camera;
-    }
-
     enableToggle() {
         let setting = {
             'Enable': false,

@@ -1,14 +1,16 @@
 import * as THREE from "three/";
-import { MathUtils, Vector3 } from "three";
+import {MathUtils, Vector3} from "three";
 // Postprocessing
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass';
 // Shader
-import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
+import {FXAAShader} from "three/examples/jsm/shaders/FXAAShader.js";
 // Pass
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass";
+import {UnrealBloomPass} from "three/examples/jsm/postprocessing/UnrealBloomPass";
+import {SSAARenderPass} from './Postproceesing/SSAAPass';
 // Customize
-import { SSRPass } from "./SSRPass";
-import { SSAOPass } from "./SSAOPass";
+import {SSRPass} from "./Postproceesing/SSRPass";
+import {SSAOPass} from "./Postproceesing/SSAOPass";
+import {SMAAPass} from "three/examples/jsm/postprocessing/SMAAPass";
 
 class PostHelper {
     constructor ( scene, composer, camera, renderer, gui ) {
@@ -21,19 +23,27 @@ class PostHelper {
             BLOOM: false,
             SSR: false,
             SSAO: true,
-            FXAA: false
+            FXAA: false,
+            SSAA: false,
+            SMAA: false,
+            MSAA: false,
         }
 
+        this.composer.setPixelRatio( 1 );
         this.passes = []
 
+        this.aa = this.gui.addFolder('Anti-Aliasing');
         this.fxaa = this.initFXAA();
+        this.smaa = this.initSMAA();
+        this.ssaa = this.initSSAA();
+        this.composer.addPass( this.ssaa );
         this.composer.addPass( this.initSSAO() );
         this.composer.addPass( this.initSSR() );
         this.composer.addPass( this.initBloom() );
     }
 
     initBloom() {
-        let bloomPass = new UnrealBloomPass(
+        const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
             1.5, 4, 1);
         bloomPass.enabled = this.enable.BLOOM;
@@ -53,11 +63,14 @@ class PostHelper {
         bloomGUI.add( bloomPass, 'threshold', 0, 1, 0.001).name('Threshold');
     }
 
+    /**
+     * @summary Screen-Space ###########################################################################################
+     */
     initSSR() {
-        let renderer = this.renderer;
-        let scene = this.scene;
-        let camera = this.camera;
-        let ssrPass = new SSRPass({
+        const renderer = this.renderer;
+        const scene = this.scene;
+        const camera = this.camera;
+        const ssrPass = new SSRPass({
             renderer,
             scene,
             camera,
@@ -98,19 +111,18 @@ class PostHelper {
     }
 
     initSSAO() {
-        let scene = this.scene;
-        let camera = this.camera;
-        let ssaoPass = new SSAOPass(
-            scene,
-            camera,
+        const ssaoPass = new SSAOPass(
+            this.scene,
+            this.camera,
             innerWidth,
             innerHeight
         )
+        ssaoPass.renderToScreen = true;
         ssaoPass.enabled = this.enable.SSAO;
         ssaoPass.kernelRadius = 0.75;
         ssaoPass.minDistance = 0.00001;
 
-        let customKernelSize = 32;
+        const customKernelSize = 32;
 
         ssaoPass.ssaoMaterial.defines[ 'KERNEL_SIZE' ] = customKernelSize;
         ssaoPass.kernelSize = customKernelSize;
@@ -156,18 +168,81 @@ class PostHelper {
         ssaoGUI.add( ssaoPass, 'contrast', 0, 2).name('Level');
     }
 
+
+    /**
+     * @summary Anti-Aliasing ##########################################################################################
+     */
     initFXAA() {
-        const _this = this
-        let fxaaPass = new ShaderPass( FXAAShader );
-        this.gui.add( this.enable, 'FXAA').name('Enable FXAA').onChange(function (){
+        const _this = this;
+        const fxaaPass = new ShaderPass( FXAAShader );
+        fxaaPass.enabled = this.enable.FXAA;
+        this.aa.add( this.enable, 'FXAA').name('Enable FXAA').onChange(function (){
             fxaaPass.enabled = _this.enable.FXAA;
         });
         this.passes.push( fxaaPass );
         return fxaaPass;
     }
 
-    getFXAA (){
+    getFXAA() {
         return this.fxaa;
+    }
+
+    initSMAA() {
+        const _this = this;
+        const smaaPass = new SMAAPass(
+            window.innerWidth * this.renderer.getPixelRatio(),
+            window.innerHeight * this.renderer.getPixelRatio()
+        )
+        this.aa.add( this.enable, 'SMAA').name('Enable SMAA').onChange(function (){
+            smaaPass.enabled = _this.enable.SMAA;
+        })
+        this.passes.push( smaaPass );
+        return smaaPass;
+    }
+
+    getSMAA() {
+        return this.smaa;
+    }
+
+    initSSAA() {
+        const _this = this;
+        const _attr = {
+            sampleLevel: 4,
+            unbiased: true,
+        }
+        const ssaaPass = new SSAARenderPass( this.scene, this.camera );
+        ssaaPass.enabled = this.enable.SSAA;
+        this.aa.add( this.enable, 'SSAA').name('Enable SSAA').onChange(function (){
+            ssaaPass.enabled = _this.enable.SSAA;
+        });
+        this.aa.add( _attr, "unbiased").onChange(function (){
+            ssaaPass.unbiased = _attr.unbiased;
+        }).name('Unbiased');
+        this.aa.add( _attr, 'sampleLevel', {
+            'Level 0: 1 Sample': 0,
+            'Level 1: 2 Samples': 1,
+            'Level 2: 4 Samples': 2,
+            'Level 3: 8 Samples': 3,
+            'Level 4: 16 Samples': 4,
+            'Level 5: 32 Samples': 5
+        }).onChange(function (){
+            ssaaPass.sampleLevel = _attr.sampleLevel;
+        }).name('Sample Level');
+
+        const ssaaFormat = {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat,
+            type: THREE.FloatType
+        };
+        ssaaPass.sampleRenderTarget = new THREE.WebGLRenderTarget ( window.innerWidth, window.innerHeight, ssaaFormat);
+
+        this.passes.push( ssaaPass );
+        return ssaaPass;
+    }
+
+    getSSAA(){
+        return this.ssaa;
     }
 }
 

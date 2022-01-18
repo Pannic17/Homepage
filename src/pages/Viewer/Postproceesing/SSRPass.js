@@ -586,13 +586,13 @@ class SSRPass extends Pass {
 
 		// setup pass state
 		renderer.autoClear = false;
-		if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
-
-			renderer.setClearColor( clearColor );
-			renderer.setClearAlpha( clearAlpha || 0.0 );
-			renderer.clear();
-
-		}
+		// if ( ( clearColor !== undefined ) && ( clearColor !== null ) ) {
+		//
+		// 	renderer.setClearColor( clearColor );
+		// 	renderer.setClearAlpha( clearAlpha || 0.0 );
+		// 	renderer.clear();
+		//
+		// }
 
 		this.fsQuad.material = passMaterial;
 		this.fsQuad.render( renderer );

@@ -28,9 +28,17 @@ import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectio
 import { LightHelper } from "./LightHelper";
 import { CameraHelper } from './CameraHelper';
 import { PostHelper } from "./PostHelper";
-// import { PMREMGenerator} from "three";
-import { PMREMGenerator } from "./PMREMGenerator";
-import {initRenderer, initCanvas, initStats, initCamera, initScene, initAmbient, initShadow} from "./InitHelper";
+// import { PMREMGenerator } from "three";
+import { PMREMGenerator } from "./Postproceesing/PMREMGenerator";
+import {
+  initRenderer,
+  initCanvas,
+  initStats,
+  initCamera,
+  initScene,
+  initAmbient,
+  initShadow
+} from "./InitHelper";
 
 
 
@@ -45,7 +53,7 @@ let lights, control;
 // Light;
 let ambient, background, pmrem, hdr;
 // Postprocessing
-let composer;
+let composer, aa;
 // Global Variable for Three.js
 let parameters = {
   envMap: 'HDR',
@@ -182,18 +190,41 @@ function update() {
  * @summary Postprocessing #############################################################################################
  */
 function initPost() {
-  composer = new EffectComposer( renderer );
+  const rennderSetting = {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+    type: THREE.FloatType
+  };
+  const renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rennderSetting );
+  renderTarget.texture.name = 'EffectComposer.rt1';
+  composer = new EffectComposer( renderer, renderTarget );
+
+  let depthMaterial = new THREE.MeshDepthMaterial();
+  depthMaterial.depthPacking = THREE.RGBADepthPacking;
+  depthMaterial.blending = THREE.NoBlending;
+
+  var pars = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter,format: THREE.RGBAFormat, stencilBuffer: false };
+  let depthRenderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, pars );
+
+
 
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
 
   const postprocessing = new PostHelper( scene, composer, camera, renderer, gui );
 
-  composer.addPass( new ShaderPass( GammaCorrectionShader ));
+  // composer.addPass( aaPass );
 
-  renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
+  renderer.toneMapping = toneMappingOptions[ rennderSetting.toneMapping ];
+
+
 
   composer.addPass( postprocessing.getFXAA() );
+  // composer.addPass( postprocessing.getSSAA() );
+  composer.addPass( postprocessing.getSMAA() );
+
+  composer.addPass( new ShaderPass( GammaCorrectionShader ) );
 }
 
 
