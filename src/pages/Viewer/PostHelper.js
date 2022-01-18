@@ -5,12 +5,12 @@ import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass';
 // Shader
 import {FXAAShader} from "three/examples/jsm/shaders/FXAAShader.js";
 // Pass
-import {UnrealBloomPass} from "three/examples/jsm/postprocessing/UnrealBloomPass";
-import {SSAARenderPass} from './Postproceesing/SSAAPass';
+import { UnrealBloomPass } from "./Postproceesing/UnrealBloomPass";
+import { SSAARenderPass } from './Postproceesing/SSAAPass';
 // Customize
-import {SSRPass} from "./Postproceesing/SSRPass";
-import {SSAOPass} from "./Postproceesing/SSAOPass";
-import {SMAAPass} from "three/examples/jsm/postprocessing/SMAAPass";
+import { SSRPass } from "./Postproceesing/SSRPass";
+import { SSAOPass } from "./Postproceesing/SSAOPass";
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
 
 class PostHelper {
     constructor ( scene, composer, camera, renderer, gui ) {
@@ -21,19 +21,18 @@ class PostHelper {
         this.gui = gui.addFolder('Postprocessing').close();
         this.enable = {
             BLOOM: false,
-            SSR: false,
+            SSR: true,
             SSAO: true,
             FXAA: false,
-            SSAA: false,
             SMAA: false,
-            MSAA: false,
+            SSAA: true,
         }
 
         this.composer.setPixelRatio( 1 );
         this.passes = []
 
         this.aa = this.gui.addFolder('Anti-Aliasing');
-        this.fxaa = this.initFXAA();
+        // this.fxaa = this.initFXAA();
         this.smaa = this.initSMAA();
         this.ssaa = this.initSSAA();
         this.composer.addPass( this.ssaa );
@@ -176,9 +175,9 @@ class PostHelper {
         const _this = this;
         const fxaaPass = new ShaderPass( FXAAShader );
         fxaaPass.enabled = this.enable.FXAA;
-        this.aa.add( this.enable, 'FXAA').name('Enable FXAA').onChange(function (){
-            fxaaPass.enabled = _this.enable.FXAA;
-        });
+        // this.aa.add( this.enable, 'FXAA').name('Enable FXAA').onChange(function (){
+        //     fxaaPass.enabled = _this.enable.FXAA;
+        // });
         this.passes.push( fxaaPass );
         return fxaaPass;
     }
@@ -207,7 +206,7 @@ class PostHelper {
     initSSAA() {
         const _this = this;
         const _attr = {
-            sampleLevel: 4,
+            sampleLevel: 3,
             unbiased: true,
         }
         const ssaaPass = new SSAARenderPass( this.scene, this.camera );

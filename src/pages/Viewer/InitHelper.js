@@ -2,10 +2,13 @@ import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module";
 
 export function initRenderer() {
-    const renderer = new THREE.WebGLRenderer({antialias: true});
+    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setClearColor( 0x000000, 0 );
     /**
      * @function Gamma
      * DISCARD -> UNAVAILABLE
@@ -39,7 +42,7 @@ export function initCamera() {
 
 export function initScene() {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color( 0xa0a0a0 );
+    scene.background = null;
     // scene.fog = new THREE.Fog( 0x443333, 1, 4 );
     return scene;
 }

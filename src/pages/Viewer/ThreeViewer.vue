@@ -1,6 +1,7 @@
 <template>
   <body>
     <div id="three-canvas"></div>
+    <img class="background" src="public/image/galaxy.jpg" alt="" />
   </body>
 </template>
 
@@ -90,11 +91,14 @@ function initThree (){
   initShadow( renderer );
 
   initGUI();
-  initPost();
+
   // addPlane( scene );
   // addTestObjects( scene );
-  lights = new LightHelper( scene, gui );
   control = new CameraHelper( scene, camera, canvas, gui );
+  lights = new LightHelper( scene, gui );
+
+  initPost();
+
 
 
   pmrem = new PMREMGenerator( renderer );
@@ -107,7 +111,7 @@ function initThree (){
       scene.environment = hdrTexture;
       // scene.background = hdrTexture;
       // scene.background = 'black'
-      scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
+      scene.fog = new THREE.Fog(0xaaaaaa, 200, 1000);
       pmrem.compileEquirectangularShader();
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
@@ -116,7 +120,9 @@ function initThree (){
           '/image/galaxy.jpg',
           function ( texture ) {
             background = texture;
-            scene.background = background;
+            // scene.background = background;
+            scene.background.toneMapped = false;
+            console.log( background );
             backgroundFit( background );
           }
       );
@@ -200,27 +206,14 @@ function initPost() {
   renderTarget.texture.name = 'EffectComposer.rt1';
   composer = new EffectComposer( renderer, renderTarget );
 
-  let depthMaterial = new THREE.MeshDepthMaterial();
-  depthMaterial.depthPacking = THREE.RGBADepthPacking;
-  depthMaterial.blending = THREE.NoBlending;
-
-  var pars = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter,format: THREE.RGBAFormat, stencilBuffer: false };
-  let depthRenderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, pars );
-
-
+  renderer.toneMapping = toneMappingOptions[ rennderSetting.toneMapping ];
 
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
 
   const postprocessing = new PostHelper( scene, composer, camera, renderer, gui );
 
-  // composer.addPass( aaPass );
-
-  renderer.toneMapping = toneMappingOptions[ rennderSetting.toneMapping ];
-
-
-
-  composer.addPass( postprocessing.getFXAA() );
+  // composer.addPass( postprocessing.getFXAA() );
   // composer.addPass( postprocessing.getSSAA() );
   composer.addPass( postprocessing.getSMAA() );
 
@@ -237,11 +230,12 @@ function initGUI() {
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
   // controlGUI.add( save, 'saveSettings').name('Save Settings');
-  controlGUI.add( parameters, 'envAngle', -Math.PI, Math.PI).name('HDR Angle').onChange(
+  controlGUI.add( parameters, 'envAngle', -360, 360).name('HDR Angle').onChange(
       function (value) {
-        let hdrTexture = pmrem.fromEquirectangular( hdr, value ).texture;
+        let radians = value * Math.PI / 180
+        let hdrTexture = pmrem.fromEquirectangular( hdr, radians ).texture;
         scene.environment = hdrTexture;
-        // scene.background = hdrTexture;
+        scene.background = hdrTexture;
       }
   );
 
@@ -331,5 +325,14 @@ export default {
 <style scoped>
 #three-canvas{
   text-align: center;
+}
+
+.background{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  top: 0;
 }
 </style>
