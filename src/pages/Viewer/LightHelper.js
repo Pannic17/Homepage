@@ -3,44 +3,61 @@ import * as THREE from "three/";
 class LightHelper {
     constructor( scene, gui, parameters ) {
         // Inputs
+        let _this = this;
         this.scene = scene;
         this.gui = gui.addFolder('Lights').close();
-
         this.lights = [];
         this.parameters = parameters;
-        this.parameters.lights = this.lights
+        if ( !parameters.lights ){
+            this.parameters.lights = this.lights;
+        } else {
+            for (let i = 0; i<parameters.lights.length; i++) {
+                _this.addLight( parameters.lights[i].type, parameters.lights[i] );
+            }
+        }
 
-        this.addSelection = 0
+        this.addSelection = {
+            'selection': LightHelper.LIGHT.None,
+            'add': addSelective,
+        }
+
+        function addSelective(){
+            _this.addLight( _this.addSelection.selection );
+        }
+
         this.addMenu();
     }
 
+    /**
+     * @summary Selections #############################################################################################
+     */
+
     addMenu() {
         const addMenu = this.gui.addFolder('Add Light');
-        addMenu.add( this, 'addSelection', {
+        addMenu.add( this.addSelection, 'selection', {
             'None': LightHelper.LIGHT.None,
             'Point': LightHelper.LIGHT.Point,
             'Directional': LightHelper.LIGHT.Directional,
             'Hemisphere': LightHelper.LIGHT.Hemisphere,
             // 'Spot': LightHelper.LIGHT.Spot,
         }).name('Light Type');
-        addMenu.add( this, 'addSelective').name('Add')
+        addMenu.add( this.addSelection, 'add').name('Add')
     }
 
-    /**
-     * @summary Selections #############################################################################################
-     */
-    addSelective() {
-        switch ( this.addSelection ) {
+
+
+    addLight( lightType, parameters ) {
+        switch ( lightType ) {
             case LightHelper.LIGHT.None:
                 break;
             case LightHelper.LIGHT.Point:
-                this.initPointLight();
+                this.initPointLight( parameters ? parameters : LightHelper.PointLIGHT );
                 break;
             case LightHelper.LIGHT.Directional:
-                this.initDirLight();
+                this.initDirLight( parameters ? parameters : LightHelper.DirLIGHT );
                 break;
             case LightHelper.LIGHT.Hemisphere:
-                this.initHemiLight();
+                this.initHemiLight( parameters ? parameters : LightHelper.HemiLIGHT );
                 break;
             // case LightHelper.LIGHT.Spot:
             //     this.initSpotLight();
@@ -72,26 +89,8 @@ class LightHelper {
     /**
      * @summary Lights #################################################################################################
      */
-    initPointLight() {
-        let lightInfo = {
-            type: LightHelper.LIGHT.Point,
-            intensity: 40,
-            distance: 100,
-            color: 0xff00ff,
-            position: {
-                x: 3,
-                y: 3,
-                z: 3
-            },
-            decay: 1,
-            power: 500,
-            shadow:{
-                radius: 4,
-                blurSamples: 8,
-            },
-            enable: true
-        }
-        console.log(lightInfo.color)
+    initPointLight( lightInfo ) {
+        console.log( lightInfo );
         let pointLight = new THREE.PointLight( lightInfo.color, lightInfo.intensity, lightInfo.distance );
         pointLight.position.set(3, 3, 3);
         this.lightShadow( pointLight );
@@ -102,22 +101,8 @@ class LightHelper {
         return pointLight;
     }
 
-    initDirLight() {
-        let lightInfo = {
-            type: LightHelper.LIGHT.Directional,
-            intensity: 1,
-            color: 0xff00ff,
-            rotate: {
-                r: 20,
-                a: 90,
-                h: 15
-            },
-            shadow:{
-                radius: 4,
-                blurSamples: 8,
-            },
-            enable: true
-        }
+    initDirLight( lightInfo ) {
+        console.log( lightInfo );
         let dirLight = new THREE.DirectionalLight( lightInfo.color );
         let x = lightInfo.rotate.r * Math.cos( lightInfo.rotate.a * Math.PI / 180);
         let z = lightInfo.rotate.r * Math.sin( lightInfo.rotate.a * Math.PI / 180);
@@ -131,14 +116,7 @@ class LightHelper {
         return dirLight;
     }
 
-    initHemiLight() {
-        let lightInfo = {
-            type: LightHelper.LIGHT.Hemisphere,
-            intensity: 1,
-            color: 0xffffff,
-            groundColor: 0x121233,
-            enable: true
-        }
+    initHemiLight( lightInfo ) {
         let hemiLight = new THREE.HemisphereLight( lightInfo.color, lightInfo.groundColor );
         this.scene.add( hemiLight );
         this.lights.push( lightInfo );
@@ -307,6 +285,48 @@ LightHelper.LIGHT = {
     'Spot': 4
 }
 
+LightHelper.PointLIGHT = {
+    type: LightHelper.LIGHT.Point,
+    intensity: 40,
+    distance: 100,
+    color: 0xffff00,
+    position: {
+        x: 3,
+        y: 3,
+        z: 3
+    },
+    decay: 1,
+    power: 500,
+    shadow:{
+        radius: 4,
+        blurSamples: 8,
+    },
+    enable: true
+}
+
+LightHelper.DirLIGHT = {
+    type: LightHelper.LIGHT.Directional,
+    intensity: 1,
+    color: 0x00ffff,
+    rotate: {
+        r: 20,
+        a: 90,
+        h: 15
+    },
+    shadow:{
+        radius: 4,
+        blurSamples: 8,
+    },
+    enable: true
+}
+
+LightHelper.HemiLIGHT = {
+    type: LightHelper.LIGHT.Hemisphere,
+    intensity: 1,
+    color: 0xffffff,
+    groundColor: 0x121233,
+    enable: true
+}
 
 
 export { LightHelper };

@@ -42,22 +42,10 @@ import {
 } from "./InitHelper";
 import { saveAs } from 'file-saver';
 
-
-/*
-Global Variables
- */
-let scene, camera, renderer, canvas;
-let gui, stats;
-let object, model;
-let lights, control;
-// For customized touch events
-// Light;
-let ambient, background, pmrem, hdr;
-// Postprocessing
-let composer, aa;
-// Global Variable for Three.js
-let parameters = {
-  envMap: 'HDR',
+const PRESET = {
+  modelPath: '/model/owl_gltf/1.gltf',
+  hdrPath: '/hdr/xmas.hdr',
+  bgPath: null,
   hdrAngle: 0,
   autoPlay: false,
   ambientIntensity: 0.2,
@@ -68,16 +56,143 @@ let parameters = {
     arm: null,
     env: null,
   },
-  postprocessing: {}
+  postprocessing: {
+    "enable": {
+      "BLOOM": false,
+      "SSR": true,
+      "SSAO": true,
+      "FXAA": false,
+      "SMAA": false,
+      "SSAA": true
+    },
+    "SSAA": {
+      "sampleLevel": 3,
+      "unbiased": true
+    },
+    "BLOOM": {
+      "strength": 1.5,
+      "radius": 4,
+      "threshold": 1
+    },
+    "SSAO": {
+      "output": 0,
+      "kernelRadius": 0.75,
+      "minDistance": 0.00001,
+      "maxDistance": 0.001,
+      "contrast": 1
+    },
+    "SSR": {
+      "output": 0,
+      "thickness": 0.1,
+      "maxDistance": 5,
+      "opacity": 1,
+      "surfDist": 0.001
+    }
+  },
 }
+
+// Global Variables
+let scene, camera, renderer, canvas;
+let gui, stats;
+let object, model;
+let lights, control;
+let ambient, background, pmrem, hdr;
+let composer;
+// Test Input
+let input = {
+  modelPath: '/model/owl_gltf/1.gltf',
+  hdrPath: '/hdr/xmas.hdr',
+  bgPath: null,
+  hdrAngle: 0,
+  autoPlay: false,
+  ambientIntensity: 0.2,
+  hdrExposure: 1.0,
+  enablePostprocessing: true,
+  toneMapping: 'ACESFilmic',
+  maps: {
+    arm: null,
+    env: null,
+  },
+  postprocessing: {
+    "enable": {
+      "BLOOM": false,
+      "SSR": true,
+      "SSAO": true,
+      "FXAA": false,
+      "SMAA": false,
+      "SSAA": true
+    },
+    "SSAA": {
+      "sampleLevel": 3,
+      "unbiased": true
+    },
+    "BLOOM": {
+      "strength": 1.5,
+      "radius": 4,
+      "threshold": 1
+    },
+    "SSAO": {
+      "output": 0,
+      "kernelRadius": 0.75,
+      "minDistance": 0.00001,
+      "maxDistance": 0.001,
+      "contrast": 1
+    },
+    "SSR": {
+      "output": 0,
+      "thickness": 0.1,
+      "maxDistance": 5,
+      "opacity": 1,
+      "surfDist": 0.001
+    }
+  },
+  "lights": [
+    {
+      "type": 2,
+      "intensity": 1,
+      "color": 16711935,
+      "rotate": {
+        "r": 20,
+        "a": 90,
+        "h": 15
+      },
+      "shadow": {
+        "radius": 4,
+        "blurSamples": 8
+      },
+      "enable": true
+    },
+    {
+      "type": 1,
+      "intensity": 40,
+      "distance": 100,
+      "color": 16711935,
+      "position": {
+        "x": 3,
+        "y": 3,
+        "z": 3
+      },
+      "decay": 1,
+      "power": 500,
+      "shadow": {
+        "radius": 4,
+        "blurSamples": 8
+      },
+      "enable": true
+    }
+  ]
+}
+
 
 
 /**
  * @summary Three.js Main ##############################################################################################
  */
-function initThree (){
-
-  // initRenderer();
+function initThree ( parameters ){
+  if ( !parameters ){
+    console.log('Use Preset')
+    parameters = PRESET;
+  }
 
   renderer = initRenderer();
   canvas = initCanvas( renderer );
@@ -88,28 +203,28 @@ function initThree (){
   camera = initCamera( parameters );
   scene = initScene();
 
-  ambient = initAmbient();
+  ambient = initAmbient( parameters );
   scene.add( ambient );
   initShadow( renderer );
 
-  initGUI();
+  initGUI( parameters );
 
   // addPlane( scene );
   // addTestObjects( scene );
   control = new CameraHelper( scene, camera, canvas, gui, parameters );
   lights = new LightHelper( scene, gui, parameters );
 
-  initPost();
+  initPost( parameters );
 
-
+  console.log('Scene Loaded')
 
   pmrem = new PMREMGenerator( renderer );
 
   new RGBELoader()
-    .load('/hdr/xmas.hdr', function ( texture ) {
+    .load( parameters.hdrPath, function ( texture ) {
       // texture.mapping = THREE.EquirectangularReflectionMapping;
       hdr = texture;
-      let hdrTexture = pmrem.fromEquirectangular(texture, parameters.envAngle ).texture
+      let hdrTexture = pmrem.fromEquirectangular(texture, parameters.hdrAngle ).texture
       scene.environment = hdrTexture;
       // scene.background = hdrTexture;
       // scene.background = 'black'
@@ -133,7 +248,7 @@ function initThree (){
 
       const loader = new GLTFLoader();
       loader.load(
-          '/model/owl_gltf/1.gltf',
+          parameters.modelPath,
           function (gltf) {
             object = new THREE.Group();
             gltf.scene.traverse( function (child) {
@@ -162,78 +277,73 @@ function initThree (){
             object.rotation.y = 180 * Math.PI / 180;
             scene.add(object);
             roughnessMipmapper.dispose();
+            console.log('Fully Loaded')
             animate();
           },
-          function (xhr) {console.log((xhr.loaded / xhr.total * 100) + '% loaded');},
-          function (error) {console.log('An error happened');}
+          function (xhr) { console.log("Model " + (xhr.loaded / xhr.total * 100) + '% Loaded'); },
+          function (error) { console.log('An error happened'); }
       );
 
       pmrem.dispose();
     });
-}
 
-/**
- * @summary Animation ##################################################################################################
- */
-// Animation
-function animate() {
-  if (parameters.autoPlay){
-    object.rotation.y += 0.01;
+  function animate() {
+    if ( parameters.autoPlay ){
+      object.rotation.y += 0.01;
+    }
+    if ( parameters.enablePostprocessing ){
+      composer.render();
+    } else {
+      renderer.render( scene, camera );
+    }
+    requestAnimationFrame(animate);
+    renderer.toneMappingExposure = parameters.hdrExposure;
+    stats.update();
   }
-  if (parameters.enablePostprocessing){
-    composer.render();
-  } else {
-    renderer.render( scene, camera );
-  }
-  requestAnimationFrame(animate);
-  update()
-  stats.update();
-}
-
-// Update on Change
-function update() {
-  renderer.toneMappingExposure = parameters.hdrExposure;
 }
 
 
 /**
  * @summary Postprocessing #############################################################################################
  */
-function initPost() {
-  const rennderSetting = {
+function initPost( parameters ) {
+  const renderSetting = {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
     format: THREE.RGBAFormat,
     type: THREE.FloatType
   };
-  const renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rennderSetting );
+  const renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderSetting );
   renderTarget.texture.name = 'EffectComposer.rt1';
   composer = new EffectComposer( renderer, renderTarget );
 
-  renderer.toneMapping = toneMappingOptions[ rennderSetting.toneMapping ];
+  renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
 
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
 
   const postprocessing = new PostHelper( scene, composer, camera, renderer, gui, parameters );
 
+  composer.addPass( new ShaderPass( GammaCorrectionShader ) );
   // composer.addPass( postprocessing.getFXAA() );
   // composer.addPass( postprocessing.getSSAA() );
   composer.addPass( postprocessing.getSMAA() );
-
-  composer.addPass( new ShaderPass( GammaCorrectionShader ) );
 }
 
 
 /**
  * @summary Original GUI ###############################################################################################
  */
-function initGUI() {
+function initGUI( parameters ) {
   gui = new GUI();
+  let save = { 'setting': saveSetting }
+  function saveSetting() {
+    save2JSON( parameters );
+  }
 
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
-  controlGUI.add( save, 'saveSettings').name('Save Settings');
+  controlGUI.add( save, 'setting').name('Save Settings');
   controlGUI.add( parameters, 'hdrAngle', -360, 360).name('HDR Angle').onChange(
       function (value) {
         let radians = value * Math.PI / 180
@@ -248,11 +358,6 @@ function initGUI() {
   gui.open();
 }
 
-const save = new function() {
-  this.saveSettings = function () {
-    save2JSON();
-  }
-}
 
 
 /**
@@ -298,11 +403,13 @@ function clearAll( parent, child ){
   parent.remove( child );
 }
 
-function save2JSON() {
+function save2JSON( parameters ) {
   let data = JSON.stringify(parameters, undefined, 4);
   let bolb = new Blob([data], {type: 'text/json'});
   saveAs(bolb, "parameters.json");
 }
+
+
 /**
  * @summary Vue Mount ##################################################################################################
  */

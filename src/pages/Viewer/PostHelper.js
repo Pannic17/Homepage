@@ -1,15 +1,15 @@
 import * as THREE from "three/";
-import {MathUtils, Vector3} from "three";
+import { MathUtils, Vector3 } from "three";
 // Postprocessing
-import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 // Shader
-import {FXAAShader} from "three/examples/jsm/shaders/FXAAShader.js";
-// Pass
-import { UnrealBloomPass } from "./Postproceesing/UnrealBloomPass";
-import { SSAARenderPass } from './Postproceesing/SSAAPass';
-// Customize
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
+// Customize Pass
 import { SSRPass } from "./Postproceesing/SSRPass";
 import { SSAOPass } from "./Postproceesing/SSAOPass";
+import { UnrealBloomPass } from "./Postproceesing/UnrealBloomPass";
+import { SSAARenderPass } from './Postproceesing/SSAAPass';
+// Pass
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
 
 class PostHelper {
@@ -20,14 +20,10 @@ class PostHelper {
         this.camera = camera;
         this.gui = gui.addFolder('Postprocessing').close();
         this.parameters = parameters.postprocessing;
-        this.parameters.enable = {
-            BLOOM: false,
-            SSR: true,
-            SSAO: true,
-            FXAA: false,
-            SMAA: false,
-            SSAA: true,
-        };
+        this.parameters.SSAA = {
+            sampleLevel: 3,
+            unbiased: true,
+        }
 
         this.composer.setPixelRatio( 1 );
         this.passes = []
@@ -43,11 +39,6 @@ class PostHelper {
     }
 
     initBloom() {
-        this.parameters.BLOOM = {
-            strength: 1.5,
-            radius: 4,
-            threshold: 1
-        };
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
             this.parameters.BLOOM.strength,
@@ -83,13 +74,7 @@ class PostHelper {
         const renderer = this.renderer;
         const scene = this.scene;
         const camera = this.camera;
-        this.parameters.SSR = {
-            output: SSRPass.OUTPUT.Default,
-            thickness: 0.1,
-            maxDistance: 5,
-            opacity: 1,
-            surfDist: 0.001,
-        }
+
         const ssrPass = new SSRPass({
             renderer,
             scene,
@@ -146,13 +131,7 @@ class PostHelper {
             innerWidth,
             innerHeight
         )
-        this.parameters.SSAO = {
-            output: SSRPass.OUTPUT.Default,
-            kernelRadius: 0.75,
-            minDistance: 0.00001,
-            maxDistance: 0.001,
-            contrast: 1
-        }
+
         ssaoPass.renderToScreen = true;
         ssaoPass.enabled = this.parameters.enable.SSAO;
         ssaoPass.kernelRadius = this.parameters.SSAO.kernelRadius;
@@ -250,10 +229,6 @@ class PostHelper {
 
     initSSAA() {
         const _this = this;
-        this.parameters.SSAA = {
-            sampleLevel: 3,
-            unbiased: true,
-        }
         const ssaaPass = new SSAARenderPass( this.scene, this.camera );
         ssaaPass.enabled = this.parameters.enable.SSAA;
         this.aa.add( this.parameters.enable, 'SSAA').name('Enable SSAA').onChange(function (){

@@ -48,8 +48,8 @@ export function initScene() {
     return scene;
 }
 
-export function initAmbient() {
-    return new THREE.AmbientLight( 0xffffff, 0.2 );
+export function initAmbient( parameters ) {
+    return new THREE.AmbientLight( 0xffffff, parameters.ambientIntensity );
 }
 
 export function initShadow( renderer ) {
