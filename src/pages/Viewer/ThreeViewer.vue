@@ -40,7 +40,7 @@ import {
   initAmbient,
   initShadow
 } from "./InitHelper";
-
+import { saveAs } from 'file-saver';
 
 
 /*
@@ -58,15 +58,17 @@ let composer, aa;
 // Global Variable for Three.js
 let parameters = {
   envMap: 'HDR',
-  envAngle: 0,
+  hdrAngle: 0,
   autoPlay: false,
+  ambientIntensity: 0.2,
+  hdrExposure: 1.0,
   enablePostprocessing: true,
-  exposure: 1.0,
   toneMapping: 'ACESFilmic',
   maps: {
     arm: null,
     env: null,
-  }
+  },
+  postprocessing: {}
 }
 
 
@@ -83,7 +85,7 @@ function initThree (){
   stats = initStats();
   canvas.appendChild( stats.dom );
 
-  camera = initCamera();
+  camera = initCamera( parameters );
   scene = initScene();
 
   ambient = initAmbient();
@@ -94,8 +96,8 @@ function initThree (){
 
   // addPlane( scene );
   // addTestObjects( scene );
-  control = new CameraHelper( scene, camera, canvas, gui );
-  lights = new LightHelper( scene, gui );
+  control = new CameraHelper( scene, camera, canvas, gui, parameters );
+  lights = new LightHelper( scene, gui, parameters );
 
   initPost();
 
@@ -115,17 +117,19 @@ function initThree (){
       pmrem.compileEquirectangularShader();
 
       const roughnessMipmapper = new RoughnessMipmapper( renderer );
+      /**
+       * @function Background in Scene
+       * DISCARD -> REPLACED
       const backgroundLoader = new THREE.TextureLoader();
       backgroundLoader.load(
           '/image/galaxy.jpg',
           function ( texture ) {
             background = texture;
             // scene.background = background;
-            scene.background.toneMapped = false;
-            console.log( background );
-            backgroundFit( background );
+            // backgroundFit( background );
           }
       );
+       */
 
       const loader = new GLTFLoader();
       loader.load(
@@ -188,7 +192,7 @@ function animate() {
 
 // Update on Change
 function update() {
-  renderer.toneMappingExposure = parameters.exposure;
+  renderer.toneMappingExposure = parameters.hdrExposure;
 }
 
 
@@ -211,7 +215,7 @@ function initPost() {
   let renderPass = new RenderPass( scene, camera );
   composer.addPass( renderPass );
 
-  const postprocessing = new PostHelper( scene, composer, camera, renderer, gui );
+  const postprocessing = new PostHelper( scene, composer, camera, renderer, gui, parameters );
 
   // composer.addPass( postprocessing.getFXAA() );
   // composer.addPass( postprocessing.getSSAA() );
@@ -229,13 +233,13 @@ function initGUI() {
 
   const controlGUI = gui.addFolder('Control');
   controlGUI.add( parameters, 'autoPlay').name('Auto Play');
-  // controlGUI.add( save, 'saveSettings').name('Save Settings');
-  controlGUI.add( parameters, 'envAngle', -360, 360).name('HDR Angle').onChange(
+  controlGUI.add( save, 'saveSettings').name('Save Settings');
+  controlGUI.add( parameters, 'hdrAngle', -360, 360).name('HDR Angle').onChange(
       function (value) {
         let radians = value * Math.PI / 180
         let hdrTexture = pmrem.fromEquirectangular( hdr, radians ).texture;
         scene.environment = hdrTexture;
-        scene.background = hdrTexture;
+        // scene.background = hdrTexture;
       }
   );
 
@@ -246,7 +250,7 @@ function initGUI() {
 
 const save = new function() {
   this.saveSettings = function () {
-    console.log( parameters );
+    save2JSON();
   }
 }
 
@@ -269,7 +273,7 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
   renderer.setSize( window.innerWidth, window.innerHeight );
   composer.setSize( window.innerWidth, window.innerHeight );
-  backgroundFit( background );
+  // backgroundFit( background );
 }
 
 function isMobile() {
@@ -294,7 +298,11 @@ function clearAll( parent, child ){
   parent.remove( child );
 }
 
-
+function save2JSON() {
+  let data = JSON.stringify(parameters, undefined, 4);
+  let bolb = new Blob([data], {type: 'text/json'});
+  saveAs(bolb, "parameters.json");
+}
 /**
  * @summary Vue Mount ##################################################################################################
  */

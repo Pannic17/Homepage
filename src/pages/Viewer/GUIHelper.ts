@@ -4,14 +4,16 @@ import * as THREE from 'three/';
 export function settingGUI( gui: any, parameters: any, renderer: any, ambient: any ) {
     const settingGUI = gui.addFolder('Settings');
     // settingGUI.add( parameters, 'intensity', 0, 1, 0.01).name('Light Intensity');
-    ambientGUI( settingGUI, ambient );
-    settingGUI.add( parameters, 'exposure', 0, 2, 0.01).name('HDR Exposure');
+    ambientGUI( settingGUI, parameters, ambient );
+    settingGUI.add( parameters, 'hdrExposure', 0, 2, 0.01).name('HDR Exposure');
     settingGUI.add( parameters, 'enablePostprocessing').name('Postprocssing');
     toneMappingGUI( settingGUI, parameters, renderer );
 }
 
-function ambientGUI( gui: any, ambientLight: any) {
-    gui.add( ambientLight, 'intensity', 0, 5, 0.01).name('Ambient Intensity');
+function ambientGUI( gui: any, parameters: any, ambient: any) {
+    gui.add( parameters, 'ambientIntensity', 0, 5, 0.01).name('Ambient Intensity').onChange(function (){
+        ambient.intensity = parameters.ambientIntensity;
+    });
 }
 
 export const toneMappingOptions = {

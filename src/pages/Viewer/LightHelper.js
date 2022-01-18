@@ -1,12 +1,14 @@
 import * as THREE from "three/";
 
 class LightHelper {
-    constructor( scene, gui ) {
+    constructor( scene, gui, parameters ) {
         // Inputs
         this.scene = scene;
         this.gui = gui.addFolder('Lights').close();
 
         this.lights = [];
+        this.parameters = parameters;
+        this.parameters.lights = this.lights
 
         this.addSelection = 0
         this.addMenu();
@@ -71,33 +73,76 @@ class LightHelper {
      * @summary Lights #################################################################################################
      */
     initPointLight() {
-        let pointLight = new THREE.PointLight(0xffffff, 40, 100);
+        let lightInfo = {
+            type: LightHelper.LIGHT.Point,
+            intensity: 40,
+            distance: 100,
+            color: 0xff00ff,
+            position: {
+                x: 3,
+                y: 3,
+                z: 3
+            },
+            decay: 1,
+            power: 500,
+            shadow:{
+                radius: 4,
+                blurSamples: 8,
+            },
+            enable: true
+        }
+        console.log(lightInfo.color)
+        let pointLight = new THREE.PointLight( lightInfo.color, lightInfo.intensity, lightInfo.distance );
         pointLight.position.set(3, 3, 3);
         this.lightShadow( pointLight );
         this.scene.add( pointLight );
-        this.lights.push( pointLight );
-        let index = this.lights.length;
+        this.lights.push( lightInfo );
+        let index = this.lights.length - 1;
         this.pointLightGUI( index, pointLight );
         return pointLight;
     }
 
     initDirLight() {
-        let dirLight = new THREE.DirectionalLight( 0xffffff );
-        dirLight.position.set( 20, 15, 0.5);
-        dirLight.intensity = 0.5;
+        let lightInfo = {
+            type: LightHelper.LIGHT.Directional,
+            intensity: 1,
+            color: 0xff00ff,
+            rotate: {
+                r: 20,
+                a: 90,
+                h: 15
+            },
+            shadow:{
+                radius: 4,
+                blurSamples: 8,
+            },
+            enable: true
+        }
+        let dirLight = new THREE.DirectionalLight( lightInfo.color );
+        let x = lightInfo.rotate.r * Math.cos( lightInfo.rotate.a * Math.PI / 180);
+        let z = lightInfo.rotate.r * Math.sin( lightInfo.rotate.a * Math.PI / 180);
+        dirLight.position.set( x, lightInfo.rotate.h, z);
+        dirLight.intensity = lightInfo.intensity;
         this.lightShadow( dirLight );
         this.scene.add( dirLight );
-        this.lights.push( dirLight );
-        let index = this.lights.length;
+        this.lights.push( lightInfo );
+        let index = this.lights.length - 1;
         this.dirLightGUI( index, dirLight );
         return dirLight;
     }
 
     initHemiLight() {
-        let hemiLight = new THREE.HemisphereLight( 0x443333, 0x111122 );
+        let lightInfo = {
+            type: LightHelper.LIGHT.Hemisphere,
+            intensity: 1,
+            color: 0xffffff,
+            groundColor: 0x121233,
+            enable: true
+        }
+        let hemiLight = new THREE.HemisphereLight( lightInfo.color, lightInfo.groundColor );
         this.scene.add( hemiLight );
-        this.lights.push( hemiLight );
-        let index = this.lights.length;
+        this.lights.push( lightInfo );
+        let index = this.lights.length - 1;
         this.hemiLightGUI( index, hemiLight );
         return hemiLight;
     }
@@ -111,102 +156,140 @@ class LightHelper {
      * @summary GUI ####################################################################################################
      */
     pointLightGUI( index, pointLight ){
+        let _this = this;
         let lightName = '#' + index + ' PointLight';
         const pointLightGUI = this.gui.addFolder( lightName );
-        pointLightGUI.add( pointLight, 'intensity', 0, 100).name('Intensity');
-        pointLightGUI.add( pointLight, 'distance', 0, 500).name('Distance');
-        pointLightGUI.addColor( pointLight, 'color' ).name('Color');
-        pointLightGUI.add( pointLight.position, 'x', -20, 20);
-        pointLightGUI.add( pointLight.position, 'y', -20, 20);
-        pointLightGUI.add( pointLight.position, 'z', -20, 20);
-        pointLightGUI.add( pointLight, 'decay', 1, 5).name('Decay');
-        pointLightGUI.add( pointLight, 'power', 1, 1000).name('Power');
-        pointLightGUI.add( pointLight.shadow, 'radius', 0, 10).name('Shadow Radius');
-        pointLightGUI.add( pointLight.shadow, 'blurSamples', 1, 10, 1).name('Blur Samples');
+        pointLightGUI.add( this.lights[index], 'intensity', 0, 100).name('Intensity').onChange(function (value){
+            pointLight.intensity = value;
+        });
+        pointLightGUI.add( this.lights[index], 'distance', 0, 500).name('Distance').onChange(function (value){
+            pointLight.distance = value;
+        });
+        pointLightGUI.addColor( pointLight, 'color' ).name('Color').onChange(function (){
+            _this.lights[index].color = pointLight.color;
+        });
+        pointLightGUI.add( this.lights[index].position, 'x', -20, 20).onChange(function (value){
+            pointLight.position.x = value;
+        });
+        pointLightGUI.add( this.lights[index].position, 'y', -20, 20).onChange(function (value){
+            pointLight.position.y = value;
+        });
+        pointLightGUI.add( this.lights[index].position, 'z', -20, 20).onChange(function (value){
+            pointLight.position.z = value;
+        });
+        pointLightGUI.add( this.lights[index], 'decay', 1, 5).name('Decay').onChange(function (value){
+            pointLight.decay = value;
+        });
+        pointLightGUI.add( this.lights[index], 'power', 1, 1000).name('Power').onChange(function (value){
+            pointLight.power = value;
+        });
+        pointLightGUI.add( this.lights[index].shadow, 'radius', 0, 10).name('Shadow Radius').onChange(function (value){
+            pointLight.shadow.radius = value;
+        });
+        pointLightGUI.add( this.lights[index].shadow, 'blurSamples', 1, 10, 1).name('Blur Samples').onChange(function (value){
+            pointLight.shadow.blurSamples = value;
+        });
 
         let setting = {
             'Enable': true,
             'Remove': remove
         };
-        let _this = this
         pointLightGUI.add( setting, 'Enable').onChange(function (){
             if ( !setting.Enable ){
                 _this.scene.remove( pointLight );
+                _this.lights[index].enable = false;
             } else {
                 _this.scene.add( pointLight );
+                _this.lights[index].enable = true;
             }
         });
         function remove () {
             _this.removeLight( pointLight, pointLightGUI );
+            _this.lights.splice( index, 1 );
         }
         pointLightGUI.add( setting, 'Remove');
     }
 
     dirLightGUI( index, dirLight ){
+        let _this = this;
         let lightName = '#' + index + ' Directional Light';
-        let _attr = {
-            r: 20,
-            a: 90,
-            h: 15
-        }
         const dirLightGUI = this.gui.addFolder( lightName );
-        dirLightGUI.add( dirLight, 'intensity', 0, 20).name('Intensity');
-        dirLightGUI.addColor( dirLight, 'color' ).name('Color');
-        dirLightGUI.add( _attr, 'r', 0, 50).onChange(function (value){
-            let x = value * Math.cos( _attr.a * Math.PI / 180);
-            let z = value * Math.sin( _attr.a * Math.PI / 180);
-            dirLight.position.set( x, _attr.h, z);
+        dirLightGUI.add( this.lights[index], 'intensity', 0, 20).name('Intensity').onChange(function (value){
+            dirLight.intensity = value;
+        });
+        dirLightGUI.addColor( dirLight, 'color' ).name('Color').onChange(function (){
+            _this.lights[index].color = dirLight.color;
+        });
+        dirLightGUI.add( this.lights[index].rotate, 'r', 0, 50).onChange(function (value){
+            let x = value * Math.cos( _this.lights[index].rotate.a * Math.PI / 180);
+            let z = value * Math.sin( _this.lights[index].rotate.a * Math.PI / 180);
+            dirLight.position.set( x, _this.lights[index].rotate.h, z);
         }).name('Rotate Radius');
-        dirLightGUI.add( _attr, 'a', -360, 360).onChange(function (value){
-            let x = _attr.r * Math.cos( value * Math.PI / 180);
-            let z = _attr.r * Math.sin( value * Math.PI / 180);
-            dirLight.position.set( x, _attr.h, z);
+        dirLightGUI.add( this.lights[index].rotate, 'a', -360, 360).onChange(function (value){
+            let x = _this.lights[index].rotate.r * Math.cos( value * Math.PI / 180);
+            let z = _this.lights[index].rotate.r * Math.sin( value * Math.PI / 180);
+            dirLight.position.set( x, _this.lights[index].rotate.h, z);
         }).name('Rotate Angle');
-        dirLightGUI.add( _attr, 'h', 1, 20).onChange(function (value){
+        dirLightGUI.add( this.lights[index].rotate, 'h', 1, 20).onChange(function (value){
             dirLight.position.y = value
         }).name('Light Height');
-        dirLightGUI.add( dirLight.shadow, 'radius', 0, 10).name('Shadow Radius');
-        dirLightGUI.add( dirLight.shadow, 'blurSamples', 1, 10, 1).name('Blur Samples');
+        dirLightGUI.add( this.lights[index].shadow, 'radius', 0, 10).name('Shadow Radius').onChange(function (value){
+            dirLight.shadow.radius = value;
+        });
+        dirLightGUI.add( this.lights[index].shadow, 'blurSamples', 1, 10, 1).name('Blur Samples').onChange(function (value){
+            dirLight.shadow.blurSamples = value;
+        });
 
         let setting = {
             'Enable': true,
             'Remove': remove
         };
-        let _this = this
         dirLightGUI.add( setting, 'Enable').onChange(function (){
             if ( !setting.Enable ){
                 _this.scene.remove( dirLight );
+                _this.lights[index].enable = false;
             } else {
                 _this.scene.add( dirLight );
+                _this.lights[index].enable = true;
             }
         });
         function remove () {
             _this.removeLight( dirLight, dirLightGUI );
+            _this.lights.splice( index, 1 );
         }
         dirLightGUI.add( setting, 'Remove');
     }
 
     hemiLightGUI( index, hemiLight ) {
+        let _this = this;
         let lightName = '#' + index + ' Hemisphere Light';
         const hemiLightGUI = this.gui.addFolder( lightName );
-        hemiLightGUI.add( hemiLight, 'intensity', 0, 20).name('Intensity');
-        hemiLightGUI.addColor( hemiLight, 'color' ).name('Sky Color');
-        hemiLightGUI.addColor( hemiLight, 'groundColor' ).name('Ground Color');
+        hemiLightGUI.add( this.lights[index], 'intensity', 0, 20).name('Intensity').onChange(function (value){
+            hemiLight.intensity = value;
+        });
+        hemiLightGUI.addColor( hemiLight, 'color' ).name('Sky Color').onChange(function (){
+            _this.lights[index].color = hemiLight.color;
+        });
+        hemiLightGUI.addColor( hemiLight, 'groundColor' ).name('Ground Color').onChange(function (){
+            _this.lights[index].groundColor = hemiLight.groundColor;
+        });
 
         let setting = {
             'Enable': true,
             'Remove': remove
         };
-        let _this = this;
         hemiLightGUI.add( setting, 'Enable' ).onChange(function (){
             if ( !setting.Enable ){
                 _this.scene.remove( hemiLight );
+                _this.lights[index].enable = false;
             } else {
                 _this.scene.add( hemiLight );
+                _this.lights[index].enable = true;
             }
         });
         function remove () {
             _this.removeLight( hemiLight, hemiLightGUI );
+            _this.lights.splice( index, 1 );
         }
         hemiLightGUI.add( setting, 'Remove');
     }

@@ -13,20 +13,21 @@ import { SSAOPass } from "./Postproceesing/SSAOPass";
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
 
 class PostHelper {
-    constructor ( scene, composer, camera, renderer, gui ) {
+    constructor ( scene, composer, camera, renderer, gui, parameters ) {
         this.scene = scene;
         this.composer = composer;
         this.renderer = renderer;
         this.camera = camera;
         this.gui = gui.addFolder('Postprocessing').close();
-        this.enable = {
+        this.parameters = parameters.postprocessing;
+        this.parameters.enable = {
             BLOOM: false,
             SSR: true,
             SSAO: true,
             FXAA: false,
             SMAA: false,
             SSAA: true,
-        }
+        };
 
         this.composer.setPixelRatio( 1 );
         this.passes = []
@@ -36,16 +37,23 @@ class PostHelper {
         this.smaa = this.initSMAA();
         this.ssaa = this.initSSAA();
         this.composer.addPass( this.ssaa );
+        this.composer.addPass( this.initBloom() );
         this.composer.addPass( this.initSSAO() );
         this.composer.addPass( this.initSSR() );
-        this.composer.addPass( this.initBloom() );
     }
 
     initBloom() {
+        this.parameters.BLOOM = {
+            strength: 1.5,
+            radius: 4,
+            threshold: 1
+        };
         const bloomPass = new UnrealBloomPass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            1.5, 4, 1);
-        bloomPass.enabled = this.enable.BLOOM;
+            this.parameters.BLOOM.strength,
+            this.parameters.BLOOM.radius,
+            this.parameters.BLOOM.threshold);
+        bloomPass.enabled = this.parameters.enable.BLOOM;
         this.passes.push( bloomPass );
         this.bloomGUI( bloomPass );
         return bloomPass;
@@ -54,12 +62,18 @@ class PostHelper {
     bloomGUI( bloomPass ) {
         const _this = this;
         const bloomGUI = this.gui.addFolder('Bloom Setting').close();
-        bloomGUI.add( this.enable, 'BLOOM').name('Enable Bloom').onChange(function (){
-            bloomPass.enabled = _this.enable.BLOOM;
+        bloomGUI.add( this.parameters.enable, 'BLOOM').name('Enable Bloom').onChange(function (){
+            bloomPass.enabled = _this.parameters.enable.BLOOM;
         });
-        bloomGUI.add( bloomPass, 'strength', 0, 3, 0.002).name('Strength');
-        bloomGUI.add( bloomPass, 'radius', 0, 10, 0.01).name('Radius');
-        bloomGUI.add( bloomPass, 'threshold', 0, 1, 0.001).name('Threshold');
+        bloomGUI.add( _this.parameters.BLOOM, 'strength', 0, 3, 0.002).name('Strength').onChange(function (value){
+            bloomPass.strength = value;
+        });
+        bloomGUI.add( _this.parameters.BLOOM, 'radius', 0, 10, 0.01).name('Radius').onChange(function (value){
+            bloomPass.radius = value;
+        });
+        bloomGUI.add( _this.parameters.BLOOM, 'threshold', 0.5, 1, 0.001).name('Threshold').onChange(function (value){
+            bloomPass.threshold = value;
+        });
     }
 
     /**
@@ -69,6 +83,13 @@ class PostHelper {
         const renderer = this.renderer;
         const scene = this.scene;
         const camera = this.camera;
+        this.parameters.SSR = {
+            output: SSRPass.OUTPUT.Default,
+            thickness: 0.1,
+            maxDistance: 5,
+            opacity: 1,
+            surfDist: 0.001,
+        }
         const ssrPass = new SSRPass({
             renderer,
             scene,
@@ -76,13 +97,13 @@ class PostHelper {
             width: innerWidth,
             height: innerHeight,
         })
-        ssrPass.enabled = this.enable.SSR;
-        ssrPass.thickness = 0.1;
+        ssrPass.enabled = this.parameters.enable.SSR;
+        ssrPass.thickness = this.parameters.SSR.thickness;
         ssrPass.infiniteThick = false;
-        ssrPass.maxDistance = 5;
-        ssrPass.opacity = 1;
+        ssrPass.maxDistance = this.parameters.SSR.maxDistance;
+        ssrPass.opacity = this.parameters.SSR.opacity;
         // noinspection JSUndefinedPropertyAssignment
-        ssrPass.surfDist = 0.001;
+        ssrPass.surfDist = this.parameters.SSR.surfDist;
         this.passes.push( ssrPass );
         this.ssrGUI( ssrPass );
         return ssrPass;
@@ -91,10 +112,10 @@ class PostHelper {
     ssrGUI( ssrPass ) {
         const _this = this;
         const ssrGUI = this.gui.addFolder('SSR Setting').close();
-        ssrGUI.add( this.enable, 'SSR').name('Enable SSR').onChange(function (){
-            ssrPass.enabled = _this.enable.SSR;
+        ssrGUI.add( this.parameters.enable, 'SSR').name('Enable SSR').onChange(function (){
+            ssrPass.enabled = _this.parameters.enable.SSR;
         })
-        ssrGUI.add( ssrPass, 'output', {
+        ssrGUI.add( this.parameters.SSR, 'output', {
             'Default': SSRPass.OUTPUT.Default,
             'SSR Only': SSRPass.OUTPUT.SSR,
             'Depth': SSRPass.OUTPUT.Depth,
@@ -102,11 +123,20 @@ class PostHelper {
             'Metalness': SSRPass.OUTPUT.Metalness,
             'Roughness': SSRPass.OUTPUT.Roughness,
         }).onChange( function(value) {
-            ssrPass.output = parseInt( value );
+            ssrPass.output = value;
         }).name('Output Mode');
-        ssrGUI.add( ssrPass, 'maxDistance', 0, 5, 0.2).name('Max Distance');
-        ssrGUI.add( ssrPass, 'opacity', 0, 1, 0.01).name('Opacity');
-        ssrGUI.add( ssrPass, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance');
+        ssrGUI.add( this.parameters.SSR, 'thickness', 0, 5, 0.2).name('Thickness').onChange(function (value){
+            ssrPass.maxDistance = value;
+        });
+        ssrGUI.add( this.parameters.SSR, 'maxDistance', 0, 5, 0.2).name('Max Distance').onChange(function (value){
+            ssrPass.maxDistance = value;
+        });
+        ssrGUI.add( this.parameters.SSR, 'opacity', 0, 1, 0.01).name('Opacity').onChange(function (value){
+            ssrPass.opacity = value;
+        });
+        ssrGUI.add( this.parameters.SSR, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance').onChange(function (value){
+            ssrPass.surfDist = value;
+        });
     }
 
     initSSAO() {
@@ -116,10 +146,17 @@ class PostHelper {
             innerWidth,
             innerHeight
         )
+        this.parameters.SSAO = {
+            output: SSRPass.OUTPUT.Default,
+            kernelRadius: 0.75,
+            minDistance: 0.00001,
+            maxDistance: 0.001,
+            contrast: 1
+        }
         ssaoPass.renderToScreen = true;
-        ssaoPass.enabled = this.enable.SSAO;
-        ssaoPass.kernelRadius = 0.75;
-        ssaoPass.minDistance = 0.00001;
+        ssaoPass.enabled = this.parameters.enable.SSAO;
+        ssaoPass.kernelRadius = this.parameters.SSAO.kernelRadius;
+        ssaoPass.minDistance = this.parameters.SSAO.minDistance;
 
         const customKernelSize = 32;
 
@@ -148,10 +185,10 @@ class PostHelper {
     ssaoGUI( ssaoPass ) {
         const _this = this;
         const ssaoGUI = this.gui.addFolder('SSAO Setting').close();
-        ssaoGUI.add( this.enable, 'SSAO').name('Enable SSAO').onChange(function (){
-            ssaoPass.enabled = _this.enable.SSAO;
+        ssaoGUI.add( this.parameters.enable, 'SSAO').name('Enable SSAO').onChange(function (){
+            ssaoPass.enabled = _this.parameters.enable.SSAO;
         })
-        ssaoGUI.add( ssaoPass, 'output', {
+        ssaoGUI.add( this.parameters.SSAO, 'output', {
             'Default': SSAOPass.OUTPUT.Default,
             'SSAO Only': SSAOPass.OUTPUT.SSAO,
             'SSAO Only + Blur': SSAOPass.OUTPUT.Blur,
@@ -159,12 +196,20 @@ class PostHelper {
             'Depth': SSAOPass.OUTPUT.Depth,
             'Normal': SSAOPass.OUTPUT.Normal
         }).onChange( function (value) {
-            ssaoPass.output = parseInt( value );
+            ssaoPass.output = value;
         }).name('Output Mode');
-        ssaoGUI.add( ssaoPass, 'kernelRadius', 0, 5, 0.001).name('Kernel Radius');
-        ssaoGUI.add( ssaoPass, 'minDistance', 0.000001, 0.00002).name('Min Distance');
-        ssaoGUI.add( ssaoPass, 'maxDistance', 0.000002, 0.001).name('Max Distance');
-        ssaoGUI.add( ssaoPass, 'contrast', 0, 2).name('Level');
+        ssaoGUI.add( this.parameters.SSAO, 'kernelRadius', 0, 5, 0.001).name('Kernel Radius').onChange(function (value){
+            ssaoPass.kernelRadius = value;
+        });
+        ssaoGUI.add( this.parameters.SSAO, 'minDistance', 0.00001, 0.0002).name('Min Distance').onChange(function (value){
+            ssaoPass.minDistance = value;
+        });
+        ssaoGUI.add( this.parameters.SSAO, 'maxDistance', 0.0002, 0.001).name('Max Distance').onChange(function (value){
+            ssaoPass.maxDistance = value;
+        });
+        ssaoGUI.add( this.parameters.SSAO, 'contrast', 0, 2).name('Contrast').onChange(function (value){
+            ssaoPass.contrast = value;
+        });
     }
 
 
@@ -174,9 +219,9 @@ class PostHelper {
     initFXAA() {
         const _this = this;
         const fxaaPass = new ShaderPass( FXAAShader );
-        fxaaPass.enabled = this.enable.FXAA;
-        // this.aa.add( this.enable, 'FXAA').name('Enable FXAA').onChange(function (){
-        //     fxaaPass.enabled = _this.enable.FXAA;
+        fxaaPass.enabled = this.parameters.enable.FXAA;
+        // this.aa.add( this.parameters.enable, 'FXAA').name('Enable FXAA').onChange(function (){
+        //     fxaaPass.enabled = _this.parameters.enable.FXAA;
         // });
         this.passes.push( fxaaPass );
         return fxaaPass;
@@ -192,8 +237,8 @@ class PostHelper {
             window.innerWidth * this.renderer.getPixelRatio(),
             window.innerHeight * this.renderer.getPixelRatio()
         )
-        this.aa.add( this.enable, 'SMAA').name('Enable SMAA').onChange(function (){
-            smaaPass.enabled = _this.enable.SMAA;
+        this.aa.add( this.parameters.enable, 'SMAA').name('Enable SMAA').onChange(function (){
+            smaaPass.enabled = _this.parameters.enable.SMAA;
         })
         this.passes.push( smaaPass );
         return smaaPass;
@@ -205,19 +250,19 @@ class PostHelper {
 
     initSSAA() {
         const _this = this;
-        const _attr = {
+        this.parameters.SSAA = {
             sampleLevel: 3,
             unbiased: true,
         }
         const ssaaPass = new SSAARenderPass( this.scene, this.camera );
-        ssaaPass.enabled = this.enable.SSAA;
-        this.aa.add( this.enable, 'SSAA').name('Enable SSAA').onChange(function (){
-            ssaaPass.enabled = _this.enable.SSAA;
+        ssaaPass.enabled = this.parameters.enable.SSAA;
+        this.aa.add( this.parameters.enable, 'SSAA').name('Enable SSAA').onChange(function (){
+            ssaaPass.enabled = _this.parameters.enable.SSAA;
         });
-        this.aa.add( _attr, "unbiased").onChange(function (){
-            ssaaPass.unbiased = _attr.unbiased;
+        this.aa.add( this.parameters.SSAA, "unbiased").onChange(function (){
+            ssaaPass.unbiased = _this.parameters.SSAA.unbiased;
         }).name('Unbiased');
-        this.aa.add( _attr, 'sampleLevel', {
+        this.aa.add( this.parameters.SSAA, 'sampleLevel', {
             'Level 0: 1 Sample': 0,
             'Level 1: 2 Samples': 1,
             'Level 2: 4 Samples': 2,
@@ -225,7 +270,7 @@ class PostHelper {
             'Level 4: 16 Samples': 4,
             'Level 5: 32 Samples': 5
         }).onChange(function (){
-            ssaaPass.sampleLevel = _attr.sampleLevel;
+            ssaaPass.sampleLevel = _this.parameters.SSAA.sampleLevel;
         }).name('Sample Level');
 
         const ssaaFormat = {

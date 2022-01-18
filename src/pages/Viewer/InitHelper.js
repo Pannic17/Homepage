@@ -33,10 +33,11 @@ export function initStats() {
     return new Stats();
 }
 
-export function initCamera() {
+export function initCamera( parameters ) {
     const camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
     camera.position.set( 0, -1, -15 );
     camera.lookAt( 0, -1.5 ,0 );
+    logCamera( parameters, camera );
     return camera;
 }
 
@@ -54,4 +55,20 @@ export function initAmbient() {
 export function initShadow( renderer ) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.VSMShadowMap;
+}
+
+export function logCamera( parameters, camera ) {
+    parameters.camera = {
+        position: {
+            x: camera.position.x,
+            y: camera.position.y,
+            z: camera.position.z,
+        },
+        rotation: {
+            x: camera.rotation.x,
+            y: camera.rotation.y,
+            z: camera.rotation.z,
+        },
+        focalLength: camera.getFocalLength()
+    };
 }

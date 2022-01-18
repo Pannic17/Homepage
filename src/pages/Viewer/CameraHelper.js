@@ -1,11 +1,12 @@
 import * as THREE from "three/";
 import { Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { logCamera } from "./InitHelper";
 
 const SPEED = 0.001;
 
 class CameraHelper {
-    constructor ( scene, camera, canvas, gui ) {
+    constructor ( scene, camera, canvas, gui, parameters ) {
         // Inputs
         this.scene = scene;
         this.camera = camera;
@@ -13,25 +14,27 @@ class CameraHelper {
         this.gui = gui.addFolder('Camera Setting').close();
         this.control = this.initControl();
         this.menu = null;
+        this.parameters = parameters
 
         this.cameraGUI();
     }
 
     cameraGUI() {
         let _attr = {
-            'focusLength': this.camera.getFocalLength(),
+            'focalLength': this.camera.getFocalLength(),
             'Save': logInfo,
             'Reset': resetCamera,
         }
         let _this = this;
-        this.gui.add( _attr, 'focusLength', 24, 200).onChange(function (value){
+        this.gui.add( _attr, 'focalLength', 24, 200).onChange(function (value){
             _this.camera.setFocalLength(value);
-        }).name('Focus Length');
+            _this.parameters.camera.focalLength = value;
+        }).name('Focal Length');
         this.gui.add( _attr, 'Save');
         this.gui.add( _attr, 'Reset');
 
         function logInfo() {
-            _this.cameraLog( _this.camera );
+            _this.cameraLog( _this.camera, _this.parameters );
             _this.control.saveState();
         }
 
@@ -41,7 +44,7 @@ class CameraHelper {
         }
     }
 
-    cameraLog( camera ) {
+    cameraLog( camera, parameters ) {
         console.log('### Camera Settings\n' +
             'Position --- ' +
             'x: ' + camera.position.x + '; ' +
@@ -52,6 +55,8 @@ class CameraHelper {
             'y: ' + camera.rotation.y + '; ' +
             'z: ' + camera.rotation.z + '; ' + '\n'
         )
+        console.log(camera);
+        logCamera( parameters, camera )
     }
 
     initControl() {
