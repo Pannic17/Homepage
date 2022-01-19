@@ -1,7 +1,8 @@
 <template>
     <body>
         <div id="three-canvas"></div>
-        <img class="background" src="public/image/galaxy.jpg" alt="" />
+        <!--suppress HtmlUnknownTarget -->
+        <img class="background" src="/image/shooting_star.jpg" alt="" />
         <div class="loading" v-if="state.loaded">
             <div class="rect1"></div>
             <div class="rect2"></div>
@@ -196,7 +197,7 @@ export default {
                             parameters.modelPath,
                             function (gltf) {
                                 object = new THREE.Group();
-                                let meshGUI = gui.addFolder('Meshes').close();
+                                // let meshGUI = gui.addFolder('Meshes').close();
                                 let index = 0;
                                 gltf.scene.traverse( function (child) {
                                     if (child instanceof THREE.Mesh) {
@@ -219,7 +220,7 @@ export default {
                                         let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
                                         scene.add(viewMesh);
                                          */
-                                        const mesh = new MeshHelper( child, meshGUI, parameters, index );
+                                        // const mesh = new MeshHelper( child, meshGUI, parameters, index );
                                         object.add( child );
                                     }
                                 })
