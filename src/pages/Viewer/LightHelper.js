@@ -8,14 +8,9 @@ class LightHelper {
         this.gui = gui.addFolder('Lights').close();
         this.lights = [];
         this.parameters = parameters;
-        if ( !parameters.lights ){
-            this.parameters.lights = this.lights;
-        } else {
-            for (let i = 0; i<parameters.lights.length; i++) {
-                _this.addLight( parameters.lights[i].type, parameters.lights[i] );
-            }
-        }
 
+
+        this.addEnable = true
         this.addSelection = {
             'selection': LightHelper.LIGHT.None,
             'add': addSelective,
@@ -23,10 +18,15 @@ class LightHelper {
 
         function addSelective(){
             _this.addLight( _this.addSelection.selection );
+            if ( _this.lights.length >= 3 ){
+                _this.addEnable.disable();
+            }
         }
 
         this.addMenu();
+        this.loadLight( parameters );
     }
+
 
     /**
      * @summary Selections #############################################################################################
@@ -41,7 +41,7 @@ class LightHelper {
             'Hemisphere': LightHelper.LIGHT.Hemisphere,
             // 'Spot': LightHelper.LIGHT.Spot,
         }).name('Light Type');
-        addMenu.add( this.addSelection, 'add').name('Add')
+        this.addEnable = addMenu.add( this.addSelection, 'add').name('Add')
     }
 
 
@@ -62,6 +62,18 @@ class LightHelper {
             // case LightHelper.LIGHT.Spot:
             //     this.initSpotLight();
             //     break;
+        }
+    }
+
+    loadLight( parameters ){
+        let _this = this;
+        if ( !parameters.lights ){
+            _this.parameters.lights = _this.lights;
+        } else {
+            for (let i = 0; i < parameters.lights.length; i++) {
+                _this.addLight( parameters.lights[i].type, parameters.lights[i] );
+            }
+            parameters.lights = _this.lights;
         }
     }
 
@@ -180,6 +192,7 @@ class LightHelper {
             }
         });
         function remove () {
+            _this.addEnable.enable();
             _this.removeLight( pointLight, pointLightGUI );
             _this.lights.splice( index, 1 );
         }
@@ -230,6 +243,7 @@ class LightHelper {
             }
         });
         function remove () {
+            _this.addEnable.enable();
             _this.removeLight( dirLight, dirLightGUI );
             _this.lights.splice( index, 1 );
         }
@@ -264,6 +278,7 @@ class LightHelper {
             }
         });
         function remove () {
+            _this.addEnable.enable();
             _this.removeLight( hemiLight, hemiLightGUI );
             _this.lights.splice( index, 1 );
         }
