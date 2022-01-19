@@ -2,6 +2,13 @@
   <body>
     <div id="three-canvas"></div>
     <img class="background" src="public/image/galaxy.jpg" alt="" />
+    <div class="loading" v-if="loaded">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
   </body>
 </template>
 
@@ -35,11 +42,9 @@ import {
   initRenderer,
   initCanvas,
   initStats,
-  initCamera,
   initScene,
   initAmbient,
-  initShadow,
-  logCamera
+  initShadow
 } from "./InitHelper";
 import { saveAs } from 'file-saver';
 import axios from "axios";
@@ -113,6 +118,7 @@ let object, model;
 let lights, control;
 let ambient, background, pmrem, hdr;
 let composer;
+let loaded = false;
 
 
 /**
@@ -130,9 +136,7 @@ function initThree ( parameters ){
   stats = initStats();
   canvas.appendChild( stats.dom );
 
-  camera = initCamera( parameters );
   scene = initScene();
-
   ambient = initAmbient( parameters );
   scene.add( ambient );
   initShadow( renderer );
@@ -141,7 +145,8 @@ function initThree ( parameters ){
 
   // addPlane( scene );
   // addTestObjects( scene );
-  control = new CameraHelper( scene, camera, canvas, gui, parameters );
+  control = new CameraHelper( scene, canvas, gui, parameters );
+  camera = control.getCamera()
   lights = new LightHelper( scene, gui, parameters );
 
   initPost( parameters );
@@ -209,6 +214,7 @@ function initThree ( parameters ){
               scene.add(object);
               roughnessMipmapper.dispose();
               console.log('Fully Loaded')
+              loaded = false
               animate();
             },
             function (xhr) { console.log("Model " + (xhr.loaded / xhr.total * 100) + '% Loaded'); },
@@ -269,7 +275,7 @@ function initGUI( parameters ) {
   gui = new GUI();
   let save = { 'setting': saveSetting }
   function saveSetting() {
-    logCamera( parameters, camera );
+    control.logCamera( parameters, camera );
     save2JSON( parameters );
   }
 
@@ -338,7 +344,7 @@ function clearAll( parent, child ){
 function save2JSON( parameters ) {
   let data = JSON.stringify(parameters, undefined, 4);
   let bolb = new Blob([data], {type: 'text/json'});
-  saveAs(bolb, "parameters.json");
+  saveAs( bolb, "parameters.json" );
 }
 
 
@@ -348,9 +354,18 @@ function save2JSON( parameters ) {
  */
 async function getJSON(){
   let data;
-  await axios.get('./test.json').then(res=>{
-    data = res.data
-  })
+  await axios.get('./test.json').then(
+      ( res ) =>{
+        data = res.data;
+      },
+      ( error ) => {
+        let status = ( error.response && error.response.status && error.response.status)
+        if ( status === 404 ){
+          data = null;
+          console.log('No Such File')
+        }
+      }
+  )
   return data
 }
 
@@ -360,7 +375,7 @@ onMounted(async () => {
   let data = await getJSON();
   console.log( data );
   initThree( data );
-  window.addEventListener ('resize', onWindowResize);
+  window.addEventListener ( 'resize', onWindowResize );
   if (isMobile ()) {
     gui.close ();
   }
@@ -372,6 +387,7 @@ onUnmounted(() => {
   renderer.dispose();
   gui.destroy();
 })
+
 </script>
 
 
@@ -381,18 +397,82 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+body{
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+
 #three-canvas{
   text-align: center;
 }
 
 .background{
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   position: absolute;
   z-index: -1;
   left: 0;
   top: 0;
   object-fit: cover;
+  user-select: none;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+}
+
+.loading{
+  position: absolute;
+  z-index: 1;
+  left: 47vw;
+  top: 47vh;
+  width: 6vw;
+  height: 6vh;
+  text-align: center;
+
+  div{
+    background-color: #7ef6f2;
+    height: 100%;
+    width: 1vw;
+    margin-right: 0.1vw;
+    margin-left: 0.1vw;
+    display: inline-block;
+
+    -webkit-animation: stretchDelay 1.2s infinite ease-in-out;
+    animation: stretchDelay 1.2s infinite ease-in-out;
+  }
+  .rect2 {
+  -webkit-animation-delay: -1.1s;
+  animation-delay: -1.1s;
+  }
+  .rect3 {
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+  }
+  .rect4 {
+    -webkit-animation-delay: -0.9s;
+    animation-delay: -0.9s;
+  }
+  .rect5 {
+    -webkit-animation-delay: -0.8s;
+    animation-delay: -0.8s;
+  }
+}
+
+@-webkit-keyframes stretchDelay {
+  0%, 40%, 100% { -webkit-transform: scaleY(0.4) }
+  20% { -webkit-transform: scaleY(1.0) }
+}
+
+@keyframes stretchDelay {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+    -webkit-transform: scaleY(0.4);
+  }  20% {
+       transform: scaleY(1.0);
+       -webkit-transform: scaleY(1.0);
+     }
 }
 </style>

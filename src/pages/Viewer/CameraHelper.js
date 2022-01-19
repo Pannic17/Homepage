@@ -1,22 +1,34 @@
 import * as THREE from "three/";
 import { Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { logCamera } from "./InitHelper";
 
 const SPEED = 0.001;
 
 class CameraHelper {
-    constructor ( scene, camera, canvas, gui, parameters ) {
+    constructor ( scene, canvas, gui, parameters ) {
         // Inputs
         this.scene = scene;
-        this.camera = camera;
         this.canvas = canvas;
+        this.parameters = parameters
         this.gui = gui.addFolder('Camera Setting').close();
+        this.camera = this.initCamera( parameters );
         this.control = this.initControl();
         this.menu = null;
-        this.parameters = parameters
 
         this.cameraGUI();
+    }
+
+    initCamera( parameters ) {
+        const camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
+        camera.position.set( parameters.camera.position.x, parameters.camera.position.y, parameters.camera.position.z );
+        camera.rotation.set( parameters.camera.rotation.x, parameters.camera.rotation.y, parameters.camera.rotation.z )
+        camera.lookAt( 0, -1.5 ,0 );
+        this.logCamera( parameters, camera );
+        return camera;
+    }
+
+    getCamera(){
+        return this.camera
     }
 
     cameraGUI() {
@@ -56,7 +68,23 @@ class CameraHelper {
             'z: ' + camera.rotation.z + '; ' + '\n'
         )
         console.log(camera);
-        logCamera( parameters, camera )
+        this.logCamera( parameters, camera )
+    }
+
+    logCamera( parameters, camera ) {
+        parameters.camera = {
+            position: {
+                x: camera.position.x,
+                y: camera.position.y,
+                z: camera.position.z,
+            },
+            rotation: {
+                x: camera.rotation.x,
+                y: camera.rotation.y,
+                z: camera.rotation.z,
+            },
+            focalLength: camera.getFocalLength()
+        };
     }
 
     initControl() {
