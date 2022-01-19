@@ -3,6 +3,31 @@
 [tencent cloud](https://homepage-2glz1j8c64ea8b56-1308663829.ap-shanghai.app.tcloudbase.com)  
 Mounted on Tencent Cloud
 
+# High Quality 3D Viewer  
+-GUI  
+-MODEL  
+  gltf loader with ORM texture and transmission  
+  enable hdr and hdr rotation  
+  with adjustable default ambient light  
+-CAMERA & LIGHTS  
+  camera and orbit control, available at both pc and mobile  
+  record camera information and can reset  
+  light preset and light controller, can add up-to 3 lights (number of lights will affect performace)  
+  enable shadow for point light and directional light  
+-POSTPROCESSING  
+  bloom with customized shader  
+  screen-space reflection with customized shader  
+  screen-space ambient occulusion with customized shader  
+  SMAA and SSAA, defalt 8 samples  
+-OTHER  
+  gamma correction of 2.2  
+  enable tone mapping choice  
+-COMMUNICATION  
+  with default scene setting  
+  read parameters from json files  
+  export json file of parameters for download  
+
+
 
 # Vue 3 + Typescript + Vite
 
