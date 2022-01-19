@@ -106,7 +106,7 @@ const PRESET = {
             "surfDist": 0.001
         },
         "SHARP": {
-            "intensity": 0.5
+            "intensity": 0.1
         }
     },
     "camera": {
@@ -220,7 +220,7 @@ export default {
                                         scene.add(viewMesh);
                                          */
                                         const mesh = new MeshHelper( child, meshGUI, parameters, index );
-                                        object.add( mesh.updateMesh() );
+                                        object.add( child );
                                     }
                                 })
                                 object.rotation.y = 180 * Math.PI / 180;
@@ -337,7 +337,7 @@ export default {
         }
 
         function clearAll( parent, child ){
-            if( child.children.length ){
+            if( child.children && child.children.length ){
                 let arr    = child.children.filter( x => x );
                 arr.forEach( a=> {
                     clearAll( child, a )

@@ -11,9 +11,7 @@ class MeshHelper {
         // this.sheenGUI();
     }
 
-    initScattering() {
-        const texture = this.material.texture
-    }
+
 
     /**
      * @summary For Physical Mesh ######################################################################################

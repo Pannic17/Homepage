@@ -4,7 +4,7 @@ var SharpenShader = {
         "width": { value: 0.0 },
         "height": { value: 0.0 },
         "kernel": { value: [-1, -1, -1, -1, 8, -1, -1, -1, -1]},
-        "amount": { value: 0.3 }
+        "amount": { value: 0.1 }
     },
     vertexShader: /* glsl */`
 		varying vec2 vUv;
@@ -37,12 +37,12 @@ var SharpenShader = {
             offset[7] = vec2(0.0, step_h);
             offset[8] = vec2(step_w, step_h);
             vec3 sum = vec3(0.0);
-
             for ( int i = 0; i < 9; i++) {
                 sum += texture2D( tDiffuse, vUv + offset[i]).rgb * kernel[i] * amount;
-                alpha += texture2D( tDiffuse, vUv + offset[i]).a;
+                // alpha += texture2D( tDiffuse, vUv + offset[i]).a;
             }
             sum += texture2D( tDiffuse, vUv).rgb * 1.0;
+            alpha = texture2D(tDiffuse, vUv).a;
             gl_FragColor = vec4(sum, alpha);
         }
     `
