@@ -40,19 +40,21 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 // SSR & SSAO
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
 // DEBUG
-import { LightHelper } from "./LightHelper";
-import { CameraHelper } from './CameraHelper';
-import { PostHelper } from "./PostHelper";
-// import { PMREMGenerator } from "three";
-import { PMREMGenerator } from "./Postproceesing/PMREMGenerator";
 import {
-    initRenderer,
+initRenderer,
     initCanvas,
     initStats,
     initScene,
     initAmbient,
     initShadow
 } from "./InitHelper";
+import { LightHelper } from "./LightHelper";
+import { CameraHelper } from './CameraHelper';
+import { PostHelper } from "./PostHelper";
+import { MeshHelper } from "./MeshHelper";
+// import { PMREMGenerator } from "three";
+import { PMREMGenerator } from "./Postproceesing/PMREMGenerator";
+
 import { saveAs } from 'file-saver';
 import axios from "axios";
 
@@ -77,7 +79,8 @@ const PRESET = {
             "SSAO": true,
             "FXAA": false,
             "SMAA": false,
-            "SSAA": true
+            "SSAA": true,
+            "SHARP": false,
         },
         "SSAA": {
             "sampleLevel": 3,
@@ -101,6 +104,9 @@ const PRESET = {
             "maxDistance": 3,
             "opacity": 1,
             "surfDist": 0.001
+        },
+        "SHARP": {
+            "intensity": 0.5
         }
     },
     "camera": {
@@ -190,15 +196,17 @@ export default {
                             parameters.modelPath,
                             function (gltf) {
                                 object = new THREE.Group();
+                                let meshGUI = gui.addFolder('Meshes').close();
+                                let index = 0;
                                 gltf.scene.traverse( function (child) {
                                     if (child instanceof THREE.Mesh) {
+                                        index += 1;
                                         console.log(child.material);
                                         roughnessMipmapper.generateMipmaps(child.material);
                                         child.castShadow = true;
                                         child.receiveShadow = true;
                                         child.material.aoIntensity = 0;
                                         child.material.aoMap = null;
-                                        object.add( child );
                                         /**
                                          * @function View ARM
                                          * DISCARD -> RECONSTRUCT
@@ -211,6 +219,8 @@ export default {
                                         let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
                                         scene.add(viewMesh);
                                          */
+                                        const mesh = new MeshHelper( child, meshGUI, parameters, index );
+                                        object.add( mesh.updateMesh() );
                                     }
                                 })
                                 object.rotation.y = 180 * Math.PI / 180;
@@ -376,7 +386,7 @@ export default {
             window.createImageBitmap = undefined; // Fix iOS Bug
             let data = await getJSON();
             console.log( state.loaded );
-            initThree( data );
+            initThree();
             window.addEventListener ( 'resize', onWindowResize );
             if (isMobile ()) {
                 gui.close ();

@@ -11,6 +11,7 @@ import { UnrealBloomPass } from "./Postproceesing/UnrealBloomPass";
 import { SSAARenderPass } from './Postproceesing/SSAAPass';
 // Pass
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
+import {SharpenShader} from "./Postproceesing/SharpenShader";
 
 class PostHelper {
     constructor ( scene, composer, camera, renderer, gui, parameters ) {
@@ -36,35 +37,7 @@ class PostHelper {
         this.composer.addPass( this.initBloom() );
         this.composer.addPass( this.initSSAO() );
         this.composer.addPass( this.initSSR() );
-    }
-
-    initBloom() {
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            this.parameters.BLOOM.strength,
-            this.parameters.BLOOM.radius,
-            this.parameters.BLOOM.threshold);
-        bloomPass.enabled = this.parameters.enable.BLOOM;
-        this.passes.push( bloomPass );
-        this.bloomGUI( bloomPass );
-        return bloomPass;
-    }
-
-    bloomGUI( bloomPass ) {
-        const _this = this;
-        const bloomGUI = this.gui.addFolder('Bloom Setting').close();
-        bloomGUI.add( this.parameters.enable, 'BLOOM').name('Enable Bloom').onChange(function (){
-            bloomPass.enabled = _this.parameters.enable.BLOOM;
-        });
-        bloomGUI.add( _this.parameters.BLOOM, 'strength', 0, 3, 0.002).name('Strength').onChange(function (value){
-            bloomPass.strength = value;
-        });
-        bloomGUI.add( _this.parameters.BLOOM, 'radius', 0, 10, 0.01).name('Radius').onChange(function (value){
-            bloomPass.radius = value;
-        });
-        bloomGUI.add( _this.parameters.BLOOM, 'threshold', 0.5, 1, 0.001).name('Threshold').onChange(function (value){
-            bloomPass.threshold = value;
-        });
+        this.composer.addPass( this.initSharp() );
     }
 
 
@@ -217,9 +190,10 @@ class PostHelper {
             window.innerWidth * this.renderer.getPixelRatio(),
             window.innerHeight * this.renderer.getPixelRatio()
         )
+        smaaPass.enabled = this.parameters.enable.SMAA;
         this.aa.add( this.parameters.enable, 'SMAA').name('Enable SMAA').onChange(function (){
             smaaPass.enabled = _this.parameters.enable.SMAA;
-        })
+        });
         this.passes.push( smaaPass );
         return smaaPass;
     }
@@ -263,6 +237,60 @@ class PostHelper {
 
     getSSAA(){
         return this.ssaa;
+    }
+
+
+    /**
+     * @summary Beauty ################################################################################################
+     */
+    initBloom() {
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            this.parameters.BLOOM.strength,
+            this.parameters.BLOOM.radius,
+            this.parameters.BLOOM.threshold);
+        bloomPass.enabled = this.parameters.enable.BLOOM;
+        this.passes.push( bloomPass );
+        this.bloomGUI( bloomPass );
+        return bloomPass;
+    }
+
+    bloomGUI( bloomPass ) {
+        const _this = this;
+        const bloomGUI = this.gui.addFolder('Bloom Setting').close();
+        bloomGUI.add( this.parameters.enable, 'BLOOM').name('Enable Bloom').onChange(function (){
+            bloomPass.enabled = _this.parameters.enable.BLOOM;
+        });
+        bloomGUI.add( this.parameters.BLOOM, 'strength', 0, 3, 0.002).name('Strength').onChange(function (value){
+            bloomPass.strength = value;
+        });
+        bloomGUI.add( this.parameters.BLOOM, 'radius', 0, 10, 0.01).name('Radius').onChange(function (value){
+            bloomPass.radius = value;
+        });
+        bloomGUI.add( this.parameters.BLOOM, 'threshold', 0.5, 1, 0.001).name('Threshold').onChange(function (value){
+            bloomPass.threshold = value;
+        });
+    }
+
+    initSharp() {
+        const sharpPass = new ShaderPass( SharpenShader );
+        sharpPass.uniforms.width.value = window.innerWidth;
+        sharpPass.uniforms.height.value = window.innerHeight;
+        sharpPass.enabled = this.parameters.enable.SHARP;
+        this.passes.push( sharpPass );
+        this.sharpGUI( sharpPass );
+        return sharpPass;
+    }
+
+    sharpGUI( sharpPass ){
+        const _this = this;
+        const sharpGUI = this.gui.addFolder('Sharpen Setting').close();
+        sharpGUI.add( this.parameters.enable, 'SHARP').name('Enable Sharpen').onChange( function (){
+            sharpPass.enabled = _this.parameters.enable.SHARP;
+        });
+        sharpGUI.add( this.parameters.SHARP, 'intensity', 0, 1).name('Intensity').onChange(function (value){
+            sharpPass.uniforms[ 'amount' ].value = value
+        })
     }
 }
 

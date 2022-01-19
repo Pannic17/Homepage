@@ -19,7 +19,8 @@
             "SSAO": true,
             "FXAA": false,
             "SMAA": false,
-            "SSAA": true
+            "SSAA": true,
+            "SHARP": false,
         },
         "SSAA": {
             "sampleLevel": 3,
