@@ -40,7 +40,7 @@
         "SSR": {
             "output": 0,
             "thickness": 0.1,
-            "maxDistance": 5,
+            "maxDistance": 2,
             "opacity": 1,
             "surfDist": 0.001
         }

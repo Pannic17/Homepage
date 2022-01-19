@@ -111,13 +111,13 @@ class PostHelper {
         }).onChange( function(value) {
             ssrPass.output = value;
         }).name('Output Mode');
-        ssrGUI.add( this.parameters.SSR, 'thickness', 0, 5, 0.2).name('Thickness').onChange(function (value){
+        ssrGUI.add( this.parameters.SSR, 'thickness', 0, 5).name('Thickness').onChange(function (value){
             ssrPass.maxDistance = value;
         });
-        ssrGUI.add( this.parameters.SSR, 'maxDistance', 0, 5, 0.2).name('Max Distance').onChange(function (value){
+        ssrGUI.add( this.parameters.SSR, 'maxDistance', 0, 3).name('Max Distance').onChange(function (value){
             ssrPass.maxDistance = value;
         });
-        ssrGUI.add( this.parameters.SSR, 'opacity', 0, 1, 0.01).name('Opacity').onChange(function (value){
+        ssrGUI.add( this.parameters.SSR, 'opacity', 0, 1).name('Opacity').onChange(function (value){
             ssrPass.opacity = value;
         });
         ssrGUI.add( this.parameters.SSR, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance').onChange(function (value){

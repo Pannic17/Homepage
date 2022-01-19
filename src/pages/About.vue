@@ -1,13 +1,13 @@
 <template>
-  <body>
-    <Header></Header>
-    <Menu></Menu>
+    <body>
+        <Header></Header>
+        <Menu></Menu>
 
-   <p>{{ $t("about.about") }}</p>
+     <p>{{ $t("about.about") }}</p>
 
-    <p><a href="https://github.com/Pannic17">Github</a></p>
-    <p>{{ $t("about.para") }}</p>
-  </body>
+        <p><a href="https://github.com/Pannic17">Github</a></p>
+        <p>{{ $t("about.para") }}</p>
+    </body>
 
 </template>
 
@@ -18,6 +18,6 @@ import Menu from "../components/Menu.vue";
 
 <script lang="ts">
 export default {
-  name: "About"
+    name: "About"
 }
 </script>

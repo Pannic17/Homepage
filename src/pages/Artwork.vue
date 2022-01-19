@@ -1,24 +1,24 @@
 <template>
-  <body>
-    <Header></Header>
-    <Menu></Menu>
+    <body>
+        <Header></Header>
+        <Menu></Menu>
 
-    <div>
-      <h1>{{ $t("artwork.mg") }}</h1>
-    </div>
+        <div>
+            <h1>{{ $t("artwork.mg") }}</h1>
+        </div>
 
-    <div>
-      <h1>{{ $t("artwork.3d") }}</h1>
-    </div>
+        <div>
+            <h1>{{ $t("artwork.3d") }}</h1>
+        </div>
 
-    <div>
-      <h1>{{ $t("artwork.pp") }}</h1>
-    </div>
+        <div>
+            <h1>{{ $t("artwork.pp") }}</h1>
+        </div>
 
-    <div>
-      <h1>{{ $t("artwork.cc") }}</h1>
-    </div>
-  </body>
+        <div>
+            <h1>{{ $t("artwork.cc") }}</h1>
+        </div>
+    </body>
 </template>
 
 <script setup lang="ts">
@@ -28,7 +28,7 @@ import Menu from "../components/Menu.vue";
 
 <script lang="ts">
 export default {
-  name: "Artwork"
+    name: "Artwork"
 }
 </script>
 
