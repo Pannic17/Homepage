@@ -1,0 +1,96 @@
+{
+    "modelPath": "/model/owl_gltf/1.gltf",
+    "hdrPath": "/hdr/xmas.hdr",
+    "bgPath": null,
+    "hdrAngle": -339.12,
+    "autoPlay": false,
+    "ambientIntensity": 0.39,
+    "hdrExposure": 1,
+    "enablePostprocessing": true,
+    "toneMapping": "ACESFilmic",
+    "maps": {
+        "arm": null,
+        "env": null
+    },
+    "postprocessing": {
+        "enable": {
+            "BLOOM": false,
+            "SSR": true,
+            "SSAO": true,
+            "FXAA": false,
+            "SMAA": false,
+            "SSAA": true
+        },
+        "SSAA": {
+            "sampleLevel": 3,
+            "unbiased": true
+        },
+        "BLOOM": {
+            "strength": 1.5,
+            "radius": 4,
+            "threshold": 1
+        },
+        "SSAO": {
+            "output": 0,
+            "kernelRadius": 0.75,
+            "minDistance": 0.00001,
+            "maxDistance": 0.001,
+            "contrast": 1
+        },
+        "SSR": {
+            "output": 0,
+            "thickness": 0.1,
+            "maxDistance": 5,
+            "opacity": 1,
+            "surfDist": 0.001
+        }
+    },
+    "lights": [
+        {
+            "type": 2,
+            "intensity": 1.68,
+            "color": 4718588,
+            "rotate": {
+                "r": 20,
+                "a": 90,
+                "h": 15
+            },
+            "shadow": {
+                "radius": 4,
+                "blurSamples": 8
+            },
+            "enable": true
+        },
+        {
+            "type": 1,
+            "intensity": 40,
+            "distance": 100,
+            "color": 16761586,
+            "position": {
+                "x": 3,
+                "y": 3,
+                "z": 3
+            },
+            "decay": 1,
+            "power": 500,
+            "shadow": {
+                "radius": 4,
+                "blurSamples": 8
+            },
+            "enable": true
+        }
+    ],
+    "camera": {
+        "position": {
+            "x": 8.693575847661164,
+            "y": -4.596253441068884,
+            "z": -11.835748966991119
+        },
+        "rotation": {
+            "x": 2.8857247901872736,
+            "y": 0.6178083219857992,
+            "z": -2.9912039198306295
+        },
+        "focalLength": 42.248737341529164
+    }
+}

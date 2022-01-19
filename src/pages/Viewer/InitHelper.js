@@ -35,7 +35,8 @@ export function initStats() {
 
 export function initCamera( parameters ) {
     const camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
-    camera.position.set( 0, -1, -15 );
+    camera.position.set( parameters.camera.position.x, parameters.camera.position.y, parameters.camera.position.z );
+    camera.rotation.set( parameters.camera.rotation.x, parameters.camera.rotation.y, parameters.camera.rotation.z )
     camera.lookAt( 0, -1.5 ,0 );
     logCamera( parameters, camera );
     return camera;

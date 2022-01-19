@@ -8,7 +8,7 @@
 <script setup>
 // Vue
 import * as THREE from 'three/';
-import { onMounted, onUnmounted } from "vue";
+import {getCurrentInstance, onMounted, onUnmounted, reactive} from "vue";
 import { settingGUI } from "./GUIHelper";
 import { toneMappingOptions } from './GUIHelper';
 // import { addPlane, addTestObjects } from "./DebugHelper";
@@ -38,9 +38,11 @@ import {
   initCamera,
   initScene,
   initAmbient,
-  initShadow
+  initShadow,
+  logCamera
 } from "./InitHelper";
 import { saveAs } from 'file-saver';
+import axios from "axios";
 
 const PRESET = {
   modelPath: '/model/owl_gltf/1.gltf',
@@ -89,6 +91,19 @@ const PRESET = {
       "surfDist": 0.001
     }
   },
+  "camera": {
+    "position": {
+      "x": 0,
+      "y": -1,
+      "z": -15
+    },
+    "rotation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "focalLength": 45
+  }
 }
 
 // Global Variables
@@ -98,98 +113,13 @@ let object, model;
 let lights, control;
 let ambient, background, pmrem, hdr;
 let composer;
-// Test Input
-let input = {
-  modelPath: '/model/owl_gltf/1.gltf',
-  hdrPath: '/hdr/xmas.hdr',
-  bgPath: null,
-  hdrAngle: 0,
-  autoPlay: false,
-  ambientIntensity: 0.2,
-  hdrExposure: 1.0,
-  enablePostprocessing: true,
-  toneMapping: 'ACESFilmic',
-  maps: {
-    arm: null,
-    env: null,
-  },
-  postprocessing: {
-    "enable": {
-      "BLOOM": false,
-      "SSR": true,
-      "SSAO": true,
-      "FXAA": false,
-      "SMAA": false,
-      "SSAA": true
-    },
-    "SSAA": {
-      "sampleLevel": 3,
-      "unbiased": true
-    },
-    "BLOOM": {
-      "strength": 1.5,
-      "radius": 4,
-      "threshold": 1
-    },
-    "SSAO": {
-      "output": 0,
-      "kernelRadius": 0.75,
-      "minDistance": 0.00001,
-      "maxDistance": 0.001,
-      "contrast": 1
-    },
-    "SSR": {
-      "output": 0,
-      "thickness": 0.1,
-      "maxDistance": 5,
-      "opacity": 1,
-      "surfDist": 0.001
-    }
-  },
-  "lights": [
-    {
-      "type": 2,
-      "intensity": 1,
-      "color": 16711935,
-      "rotate": {
-        "r": 20,
-        "a": 90,
-        "h": 15
-      },
-      "shadow": {
-        "radius": 4,
-        "blurSamples": 8
-      },
-      "enable": true
-    },
-    {
-      "type": 1,
-      "intensity": 40,
-      "distance": 100,
-      "color": 16711935,
-      "position": {
-        "x": 3,
-        "y": 3,
-        "z": 3
-      },
-      "decay": 1,
-      "power": 500,
-      "shadow": {
-        "radius": 4,
-        "blurSamples": 8
-      },
-      "enable": true
-    }
-  ]
-}
-
 
 
 /**
  * @summary Three.js Main ##############################################################################################
  */
 function initThree ( parameters ){
-  if ( !parameters ){
+  if ( !parameters || (parameters === {}) ){
     console.log('Use Preset')
     parameters = PRESET;
   }
@@ -247,43 +177,44 @@ function initThree ( parameters ){
        */
 
       const loader = new GLTFLoader();
-      loader.load(
-          parameters.modelPath,
-          function (gltf) {
-            object = new THREE.Group();
-            gltf.scene.traverse( function (child) {
-              if (child instanceof THREE.Mesh) {
-                console.log(child.material);
-                roughnessMipmapper.generateMipmaps(child.material);
-                child.castShadow = true;
-                child.receiveShadow = true;
-                child.material.aoIntensity = 0;
-                child.material.aoMap = null;
-                object.add( child );
-                /**
-                 * @function View ARM
-                 * DISCARD -> RECONSTRUCT
-                 * realized in reload
-                parameters.maps.arm = child.material.aoMap;
-                let viewMaterial = new THREE.MeshPhongMaterial({
+      if ( parameters.modelPath ){
+        loader.load(
+            parameters.modelPath,
+            function (gltf) {
+              object = new THREE.Group();
+              gltf.scene.traverse( function (child) {
+                if (child instanceof THREE.Mesh) {
+                  console.log(child.material);
+                  roughnessMipmapper.generateMipmaps(child.material);
+                  child.castShadow = true;
+                  child.receiveShadow = true;
+                  child.material.aoIntensity = 0;
+                  child.material.aoMap = null;
+                  object.add( child );
+                  /**
+                   * @function View ARM
+                   * DISCARD -> RECONSTRUCT
+                   * realized in reload
+                   parameters.maps.arm = child.material.aoMap;
+                   let viewMaterial = new THREE.MeshPhongMaterial({
                   color: 0x0000ff,
                   map: parameters.maps.arm
                 })
-                let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
-                scene.add(viewMesh);
-                 */
-              }
-            })
-            object.rotation.y = 180 * Math.PI / 180;
-            scene.add(object);
-            roughnessMipmapper.dispose();
-            console.log('Fully Loaded')
-            animate();
-          },
-          function (xhr) { console.log("Model " + (xhr.loaded / xhr.total * 100) + '% Loaded'); },
-          function (error) { console.log('An error happened'); }
-      );
-
+                   let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
+                   scene.add(viewMesh);
+                   */
+                }
+              })
+              object.rotation.y = 180 * Math.PI / 180;
+              scene.add(object);
+              roughnessMipmapper.dispose();
+              console.log('Fully Loaded')
+              animate();
+            },
+            function (xhr) { console.log("Model " + (xhr.loaded / xhr.total * 100) + '% Loaded'); },
+            function (error) { console.log('An error happened'); }
+        );
+      }
       pmrem.dispose();
     });
 
@@ -338,6 +269,7 @@ function initGUI( parameters ) {
   gui = new GUI();
   let save = { 'setting': saveSetting }
   function saveSetting() {
+    logCamera( parameters, camera );
     save2JSON( parameters );
   }
 
@@ -410,15 +342,27 @@ function save2JSON( parameters ) {
 }
 
 
+
 /**
  * @summary Vue Mount ##################################################################################################
  */
-onMounted(() => {
+async function getJSON(){
+  let data;
+  await axios.get('./test.json').then(res=>{
+    data = res.data
+  })
+  return data
+}
+
+
+onMounted(async () => {
   window.createImageBitmap = undefined; // Fix iOS Bug
-  initThree();
-  window.addEventListener( 'resize', onWindowResize);
-  if ( isMobile() ){
-    gui.close();
+  let data = await getJSON();
+  console.log( data );
+  initThree( data );
+  window.addEventListener ('resize', onWindowResize);
+  if (isMobile ()) {
+    gui.close ();
   }
 })
 

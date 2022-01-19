@@ -9,6 +9,7 @@
   "dependencies": {
     "@sketchfab/viewer-api": "^1.10.4",
     "FileSaver": "0.10.0",
+    "axios": "0.25.0",
     "blob": "^0.1.0",
     "file-saver": "^2.0.5",
     "postprocessing": "^6.23.2",
