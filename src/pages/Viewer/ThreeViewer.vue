@@ -58,6 +58,7 @@ import { PMREMGenerator } from "./Postproceesing/PMREMGenerator";
 
 import { saveAs } from 'file-saver';
 import axios from "axios";
+import {ThreeHelper} from "./ThreeHelper";
 
 const PRESET = {
     modelPath: '/model/owl_gltf/1.gltf',
@@ -138,6 +139,7 @@ let object, model;
 let lights, control, complex, camera;
 let ambient, background, pmrem, hdr;
 let composer;
+let three;
 
 
 export default {
@@ -351,7 +353,9 @@ export default {
         }
 
         function onWindowResize() {
+            let focalLength = camera.getFocalLength();
             camera.aspect = window.innerWidth / window.innerHeight;
+            camera.setFocalLength(focalLength);
             camera.updateProjectionMatrix();
             renderer.setSize( window.innerWidth, window.innerHeight );
             composer.setSize( window.innerWidth, window.innerHeight );
@@ -363,7 +367,9 @@ export default {
         }
 
         function clearAll( parent, child ){
-            if( child.children && child.children.length ){
+            if( child.children === "undefined" || child.children == null){
+
+            }else if( child.children.length ){
                 let arr    = child.children.filter( x => x );
                 arr.forEach( a=> {
                     clearAll( child, a )
@@ -412,11 +418,10 @@ export default {
             window.createImageBitmap = undefined; // Fix iOS Bug
             let data = await getJSON();
             console.log( state.loaded );
-            initThree( data );
-            window.addEventListener ( 'resize', onWindowResize );
-            if (isMobile ()) {
-                gui.close ();
-            }
+            // initThree( data );
+            three = new ThreeHelper( data, state );
+            window.addEventListener ( 'resize', three.onWindowResize );
+            // if (isMobile ()) { gui.close (); }
         })
 
         onUnmounted(() => {

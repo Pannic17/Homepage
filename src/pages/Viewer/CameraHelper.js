@@ -49,7 +49,7 @@ class CameraHelper {
         }).name('Focal Length');
         this.gui.add( _attr, 'Save');
         this.gui.add( _attr, 'Reset');
-        this.lookAtGUI = this.cameraLookAt( this.parameters.camera.lookAt );
+        // this.lookAtGUI = this.cameraLookAt( this.parameters.camera.lookAt );
 
         function logInfo() {
             _this.cameraLog( _this.camera, _this.parameters, _this.control );
@@ -59,11 +59,11 @@ class CameraHelper {
         function resetCamera() {
             _this.control.reset();
             _this.camera.lookAt( _this.control.target.x, _this.control.target.y, _this.control.target.z );
-            _this.lookAtGUI.destroy();
+            // _this.lookAtGUI.destroy();
             _this.parameters.camera.lookAt.x =  _this.control.target.x;
             _this.parameters.camera.lookAt.y =  _this.control.target.y;
             _this.parameters.camera.lookAt.z =  _this.control.target.z;
-            _this.lookAtGUI = _this.cameraLookAt( _this.parameters.camera.lookAt );
+            // _this.lookAtGUI = _this.cameraLookAt( _this.parameters.camera.lookAt );
             _this.control.update();
         }
     }
@@ -101,7 +101,7 @@ class CameraHelper {
         control.target = new Vector3( parameters.x, parameters.y, parameters.z );
         control.update();
         control.saveState();
-        control.enableDamping = true;
+        // control.enableDamping = true;
         control.rotateSpeed = SPEED*1000;
         control.maxDistance = 100;
         control.touches = {
