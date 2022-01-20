@@ -412,7 +412,7 @@ export default {
             window.createImageBitmap = undefined; // Fix iOS Bug
             let data = await getJSON();
             console.log( state.loaded );
-            initThree();
+            initThree( data );
             window.addEventListener ( 'resize', onWindowResize );
             if (isMobile ()) {
                 gui.close ();
