@@ -199,7 +199,7 @@ class ThreeHelper {
         controlGUI.add( parameters, 'autoPlay').name('Auto Play');
         controlGUI.add( parameters, 'rotation', -180, 180).name('Y-Axis Rotation').onChange(
             function (value) {
-                _this.object.rotation.y = value * Math.PI / 180;
+                _this.object.rotation.y = ( value + 180 ) * Math.PI / 180;
             }
         ).listen();
         controlGUI.add( button, 'setting').name('Save Settings');
