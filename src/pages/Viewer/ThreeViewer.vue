@@ -23,42 +23,11 @@
 <script>
 // Vue
 import * as THREE from 'three/';
-import {getCurrentInstance, onMounted, onUnmounted, reactive, ref, watch} from "vue";
-import { settingGUI } from "./GUIHelper";
-import { toneMappingOptions } from './GUIHelper';
-// import { addPlane, addTestObjects } from "./DebugHelper";
-// Three.js
-import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
-// Loader
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-// Material
-import { RoughnessMipmapper } from 'three/examples/jsm/utils/RoughnessMipmapper.js';
-// Postprocessing
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
-// SSR & SSAO
-import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader';
-// DEBUG
-import {
-initRenderer,
-    initCanvas,
-    initStats,
-    initScene,
-    initAmbient,
-    initShadow
-} from "./InitHelper";
-import { LightHelper } from "./LightHelper";
-import { CameraHelper } from './CameraHelper';
-import { PostHelper } from "./PostHelper";
-import { MeshHelper } from "./MeshHelper";
-// import { PMREMGenerator } from "three";
-import { PMREMGenerator } from "./Postproceesing/PMREMGenerator";
+import { onMounted, onUnmounted, reactive, watch } from "vue";
 
 import { saveAs } from 'file-saver';
 import axios from "axios";
-import {ThreeHelper} from "./ThreeHelper";
+import { ThreeHelper } from "./ThreeHelper";
 
 const PRESET = {
     modelPath: '/model/owl_gltf/1.gltf',
@@ -133,238 +102,12 @@ const PRESET = {
 }
 
 // Global Variables
-let scene, renderer, canvas;
-let gui, stats;
-let object, model;
-let lights, control, complex, camera;
-let ambient, background, pmrem, hdr;
-let composer;
 let three;
-
 
 export default {
     name: "ThreeViewer",
     setup() {
         const state = reactive({ loaded: true });
-        /**
-         * @summary Three.js Main ##############################################################################################
-         */
-        function initThree ( parameters ){
-            if ( !parameters || (parameters === {}) ){
-                console.log('Use Preset')
-                parameters = PRESET;
-            }
-            renderer = initRenderer();
-            canvas = initCanvas( renderer );
-            stats = initStats();
-            canvas.appendChild( stats.dom );
-            scene = initScene();
-            ambient = initAmbient( parameters );
-            scene.add( ambient );
-            initShadow( renderer );
-            initGUI( parameters );
-
-            // addPlane( scene );
-            // addTestObjects( scene );
-            complex = new CameraHelper( scene, canvas, gui, parameters );
-            camera = complex.getCamera();
-            control = complex.getControl();
-            lights = new LightHelper( scene, gui, parameters );
-
-            initPost( parameters );
-
-            console.log('Scene Loaded')
-
-            pmrem = new PMREMGenerator( renderer );
-
-            new RGBELoader()
-                .load( parameters.hdrPath, function ( texture ) {
-                    // texture.mapping = THREE.EquirectangularReflectionMapping;
-                    hdr = texture;
-                    let hdrTexture = pmrem.fromEquirectangular(texture, parameters.hdrAngle ).texture
-                    scene.environment = hdrTexture;
-                    // scene.background = hdrTexture;
-                    scene.fog = new THREE.Fog(0xaaaaaa, 200, 1000);
-                    pmrem.compileEquirectangularShader();
-                    const roughnessMipmapper = new RoughnessMipmapper( renderer );
-                    const backgroundLoader = new THREE.TextureLoader();
-                    /**
-                     * @function Background in Canvas
-                     * DISCARD
-                    backgroundLoader.load(
-                        '/image/galaxy.jpg',
-                        function ( texture ) {
-                            background = texture;
-                            // scene.background = background;
-                            // backgroundFit( background );
-                        });
-                     */
-
-                    const loader = new GLTFLoader();
-                    if ( parameters.modelPath ){
-                        loader.load(
-                            parameters.modelPath,
-                            function (gltf) {
-                                object = new THREE.Group();
-                                // let meshGUI = gui.addFolder('Meshes').close();
-                                let index = 0;
-                                gltf.scene.traverse( function (child) {
-                                    if (child instanceof THREE.Mesh) {
-                                        index += 1;
-                                        console.log(child.material);
-                                        roughnessMipmapper.generateMipmaps(child.material);
-                                        child.castShadow = true;
-                                        child.receiveShadow = true;
-                                        child.material.aoIntensity = 0;
-                                        child.material.aoMap = null;
-                                        /**
-                                         * @function View ARM
-                                         * DISCARD -> RECONSTRUCT
-                                         * realized in reload
-                                        parameters.maps.arm = child.material.aoMap;
-                                        let viewMaterial = new THREE.MeshPhongMaterial({
-                                            color: 0x0000ff,
-                                            map: parameters.maps.arm
-                                        })
-                                        let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
-                                        scene.add(viewMesh);
-                                         */
-                                        // const mesh = new MeshHelper( child, meshGUI, parameters, index );
-                                        object.add( child );
-                                    }
-                                })
-                                object.rotation.y = (parameters.rotation + 180) * Math.PI / 180;
-                                scene.add(object);
-                                roughnessMipmapper.dispose();
-                                console.log('Fully Loaded');
-                                state.loaded = false
-                                animate();
-                            },
-                            function (xhr) { console.log("Model " + (xhr.loaded / xhr.total * 100) + '% Loaded'); },
-                            function (error) { console.log('An error happened'); }
-                        );
-                    }
-                    pmrem.dispose();
-                });
-
-            function animate() {
-                if ( parameters.autoPlay ){
-                    object.rotation.y += 0.01;
-                    let degree = (object.rotation.y * 180 / Math.PI) % 360 - 180;
-                    parameters.rotation = degree;
-                    // console.log(degree)
-                }
-                if ( parameters.enablePostprocessing ){
-                    composer.render();
-                } else {
-                    renderer.render( scene, camera );
-                }
-                requestAnimationFrame(animate);
-                renderer.toneMappingExposure = parameters.hdrExposure;
-                stats.update();
-            }
-        }
-
-
-        /**
-         * @summary Postprocessing #############################################################################################
-         */
-        function initPost( parameters ) {
-            const renderSetting = {
-                minFilter: THREE.LinearFilter,
-                magFilter: THREE.LinearFilter,
-                format: THREE.RGBAFormat,
-                type: THREE.FloatType
-            };
-            const renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderSetting );
-            renderTarget.texture.name = 'EffectComposer.rt1';
-            composer = new EffectComposer( renderer, renderTarget );
-
-            renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
-
-            let renderPass = new RenderPass( scene, camera );
-            composer.addPass( renderPass );
-
-            const postprocessing = new PostHelper( scene, composer, camera, renderer, gui, parameters );
-
-            composer.addPass( new ShaderPass( GammaCorrectionShader ) );
-            // composer.addPass( postprocessing.getFXAA() );
-            // composer.addPass( postprocessing.getSSAA() );
-            composer.addPass( postprocessing.getSMAA() );
-        }
-
-
-        /**
-         * @summary Original GUI ###############################################################################################
-         */
-        function initGUI( parameters ) {
-            gui = new GUI();
-            let button = {
-                'setting': saveSetting,
-                'reset': resetObject,
-                'rotation': parameters.rotation
-            }
-            function saveSetting() {
-                complex.logCamera( parameters, camera, control );
-                button.rotation = parameters.rotation;
-                save2JSON( parameters );
-            }
-            function resetObject() {
-                parameters.rotation = button.rotation;
-                object.rotation.y = (button.rotation + 180) * Math.PI / 180;
-            }
-
-            const controlGUI = gui.addFolder('Control');
-            controlGUI.add( parameters, 'autoPlay').name('Auto Play');
-            controlGUI.add( parameters, 'rotation', -180, 180).name('Y-Axis Rotation').onChange(
-                function (value) {
-                    object.rotation.y = value * Math.PI / 180;
-                }
-            ).listen();
-            controlGUI.add( button, 'setting').name('Save Settings');
-            controlGUI.add( button, 'reset').name('Reset Object');
-            controlGUI.add( parameters, 'hdrAngle', -360, 360).name('HDR Angle').onChange(
-                function (value) {
-                    let radians = value * Math.PI / 180
-                    let hdrTexture = pmrem.fromEquirectangular( hdr, radians ).texture;
-                    scene.environment = hdrTexture;
-                    // scene.background = hdrTexture;
-                }
-            );
-
-            settingGUI( gui, parameters, renderer, ambient );
-
-            gui.open();
-        }
-
-
-
-        /**
-         * @summary Helper Tools ###############################################################################################
-         */
-        function backgroundFit( texture ) {
-            const targetAspect = window.innerWidth / window.innerHeight;
-            const imageAspect = texture.image.width / texture.image.height;
-            const factor = imageAspect / targetAspect;
-            scene.background.offset.x = factor > 1 ? (1 - 1 / factor) / 2 : 0;
-            scene.background.repeat.x = factor > 1 ? 1 / factor : 1;
-            scene.background.offset.y = factor > 1 ? 0 : (1 - factor) / 2;
-            scene.background.repeat.y = factor > 1 ? 1 : factor;
-        }
-
-        function onWindowResize() {
-            let focalLength = camera.getFocalLength();
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.setFocalLength(focalLength);
-            camera.updateProjectionMatrix();
-            renderer.setSize( window.innerWidth, window.innerHeight );
-            composer.setSize( window.innerWidth, window.innerHeight );
-            // backgroundFit( background );
-        }
-
-        function isMobile() {
-            return navigator.userAgent.match (/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
-        }
 
         function clearAll( parent, child ){
             if( child.children === "undefined" || child.children == null){
@@ -426,9 +169,9 @@ export default {
 
         onUnmounted(() => {
             console.log('UNMOUNTED')
-            clearAll( scene, object );
-            renderer.dispose();
-            gui.destroy();
+            clearAll( three.scene, three.object );
+            three.renderer.dispose();
+            three.gui.destroy();
         })
 
 
