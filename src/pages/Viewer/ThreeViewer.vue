@@ -63,13 +63,9 @@ export default {
             saveAs( bolb, "parameters.json" );
         }
 
-
-        /**
-         * @summary Vue Mount ##################################################################################################
-         */
-        async function getJSON(){
+        async function getJSON( url ){
             let data;
-            await axios.get('./2.json').then(
+            await axios.get( url ).then(
                 ( res ) =>{
                     data = res.data;
                     },
@@ -84,10 +80,10 @@ export default {
             return data
         }
 
-
         onMounted(async () => {
             window.createImageBitmap = undefined; // Fix iOS Bug
-            let data = await getJSON();
+            let url = './2.json'
+            let data = await getJSON( url );
             console.log( state.loaded );
             // initThree( data );
             three = new ThreeHelper( data, state );
@@ -101,7 +97,6 @@ export default {
             three.renderer.dispose();
             three.gui.destroy();
         })
-
 
         watch(
             () => state.loaded,
