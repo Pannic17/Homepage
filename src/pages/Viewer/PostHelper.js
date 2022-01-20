@@ -1,16 +1,16 @@
 import * as THREE from "three/";
-import { MathUtils, Vector3 } from "three";
+import {MathUtils, Vector3} from "three";
 // Postprocessing
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass';
 // Shader
-import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
+import {FXAAShader} from "three/examples/jsm/shaders/FXAAShader.js";
 // Customize Pass
-import { SSRPass } from "./Postproceesing/SSRPass";
-import { SSAOPass } from "./Postproceesing/SSAOPass";
-import { UnrealBloomPass } from "./Postproceesing/UnrealBloomPass";
-import { SSAARenderPass } from './Postproceesing/SSAAPass';
+import {SSRPass} from "./Postproceesing/SSRPass";
+import {SSAOPass} from "./Postproceesing/SSAOPass";
+import {UnrealBloomPass} from "./Postproceesing/UnrealBloomPass";
+import {SSAARenderPass} from './Postproceesing/SSAAPass';
 // Pass
-import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass";
+import {SMAAPass} from "three/examples/jsm/postprocessing/SMAAPass";
 import {SharpenShader} from "./Postproceesing/SharpenShader";
 
 class PostHelper {
@@ -21,19 +21,15 @@ class PostHelper {
         this.camera = camera;
         this.gui = gui.addFolder('Postprocessing').close();
         this.parameters = parameters.postprocessing;
-        this.parameters.SSAA = {
-            sampleLevel: 3,
-            unbiased: true,
-        }
 
         this.composer.setPixelRatio( 1 );
-        this.passes = []
+        this.passes = {}
+        this.guigui = {}
 
         this.aa = this.gui.addFolder('Anti-Aliasing');
-        // this.fxaa = this.initFXAA();
-        this.smaa = this.initSMAA();
-        this.ssaa = this.initSSAA();
-        this.composer.addPass( this.ssaa );
+        this.initFXAA();
+        this.initSMAA();
+        this.composer.addPass( this.initSSAA() );
         this.composer.addPass( this.initBloom() );
         this.composer.addPass( this.initSSAO() );
         this.composer.addPass( this.initSSR() );
@@ -56,14 +52,14 @@ class PostHelper {
             width: innerWidth,
             height: innerHeight,
         })
+        ssrPass.infiniteThick = false;
         ssrPass.enabled = this.parameters.enable.SSR;
         ssrPass.thickness = this.parameters.SSR.thickness;
-        ssrPass.infiniteThick = false;
         ssrPass.maxDistance = this.parameters.SSR.maxDistance;
         ssrPass.opacity = this.parameters.SSR.opacity;
         // noinspection JSUndefinedPropertyAssignment
         ssrPass.surfDist = this.parameters.SSR.surfDist;
-        this.passes.push( ssrPass );
+        this.passes.SSR = ssrPass;
         this.ssrGUI( ssrPass );
         return ssrPass;
     }
@@ -96,6 +92,11 @@ class PostHelper {
         ssrGUI.add( this.parameters.SSR, 'surfDist', 0, 0.002, 0.0001).name('Surface Distance').onChange(function (value){
             ssrPass.surfDist = value;
         });
+        this.guigui.SSR = ssrGUI
+    }
+
+    ssrNOGUI() {
+        this.guigui.SSR.destroy();
     }
 
     initSSAO() {
@@ -110,6 +111,8 @@ class PostHelper {
         ssaoPass.enabled = this.parameters.enable.SSAO;
         ssaoPass.kernelRadius = this.parameters.SSAO.kernelRadius;
         ssaoPass.minDistance = this.parameters.SSAO.minDistance;
+        ssaoPass.maxDistance = this.parameters.SSAO.maxDistance;
+        ssaoPass.contrast = this.parameters.SSAO.contrast;
 
         const customKernelSize = 32;
 
@@ -128,11 +131,9 @@ class PostHelper {
             sample.multiplyScalar( scale );
             ssaoPass.ssaoMaterial.uniforms[ 'kernel' ].value.push(sample);
         }
-
-        this.passes.push( ssaoPass );
         this.ssaoGUI( ssaoPass );
+        this.passes.SSAO = ssaoPass;
         return ssaoPass;
-
     }
 
     ssaoGUI( ssaoPass ) {
@@ -163,6 +164,11 @@ class PostHelper {
         ssaoGUI.add( this.parameters.SSAO, 'contrast', 0, 2).name('Contrast').onChange(function (value){
             ssaoPass.contrast = value;
         });
+        this.guigui.SSAO = ssaoGUI;
+    }
+
+    ssaoNOGUI(){
+        this.guigui.SSAO.destroy();
     }
 
 
@@ -170,49 +176,82 @@ class PostHelper {
      * @summary Anti-Aliasing ##########################################################################################
      */
     initFXAA() {
-        const _this = this;
         const fxaaPass = new ShaderPass( FXAAShader );
         fxaaPass.enabled = this.parameters.enable.FXAA;
-        // this.aa.add( this.parameters.enable, 'FXAA').name('Enable FXAA').onChange(function (){
-        //     fxaaPass.enabled = _this.parameters.enable.FXAA;
-        // });
-        this.passes.push( fxaaPass );
+        this.fxaaGUI( fxaaPass );
+        this.passes.FXAA = fxaaPass;
         return fxaaPass;
     }
 
+    fxaaGUI( fxaaPass ) {
+        const _this = this;
+        this.guigui.FXAA = this.aa.add(this.parameters.enable, 'FXAA').name('Enable FXAA').onChange(function () {
+            fxaaPass.enabled = _this.parameters.enable.FXAA;
+        });
+        this.fxaaNOGUI();
+    }
+
     getFXAA() {
-        return this.fxaa;
+        return this.passes.FXAA;
+    }
+
+    fxaaNOGUI() {
+        this.guigui.FXAA.destroy();
     }
 
     initSMAA() {
-        const _this = this;
         const smaaPass = new SMAAPass(
             window.innerWidth * this.renderer.getPixelRatio(),
             window.innerHeight * this.renderer.getPixelRatio()
         )
         smaaPass.enabled = this.parameters.enable.SMAA;
-        this.aa.add( this.parameters.enable, 'SMAA').name('Enable SMAA').onChange(function (){
-            smaaPass.enabled = _this.parameters.enable.SMAA;
-        });
-        this.passes.push( smaaPass );
+        this.smaaGUI( smaaPass );
+        this.passes.SMAA = smaaPass ;
         return smaaPass;
     }
 
+    smaaGUI( smaaPass ) {
+        const _this = this;
+        this.guigui.SMAA = this.aa.add(this.parameters.enable, 'SMAA').name('Enable SMAA').onChange(function () {
+            smaaPass.enabled = _this.parameters.enable.SMAA;
+        });
+    }
+
     getSMAA() {
-        return this.smaa;
+        return this.passes.SMAA;
+    }
+
+    smaaNOGUI() {
+        this.guigui.SMAA.destroy();
     }
 
     initSSAA() {
-        const _this = this;
         const ssaaPass = new SSAARenderPass( this.scene, this.camera );
         ssaaPass.enabled = this.parameters.enable.SSAA;
-        this.aa.add( this.parameters.enable, 'SSAA').name('Enable SSAA').onChange(function (){
+        ssaaPass.unbiased = this.parameters.SSAA.unbiased;
+        ssaaPass.sampleLevel = this.parameters.SSAA.sampleLevel;
+        const ssaaFormat = {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat,
+            type: THREE.FloatType
+        };
+        ssaaPass.sampleRenderTarget = new THREE.WebGLRenderTarget ( window.innerWidth, window.innerHeight, ssaaFormat);
+        this.ssaaGUI( ssaaPass );
+        this.passes.SSAA = ssaaPass;
+        return ssaaPass;
+    }
+
+    ssaaGUI( ssaaPass ) {
+        const _this = this;
+        this.guigui.SSAA = this.aa.add( this.parameters.enable, 'SSAA').name('Enable SSAA').onChange(function (){
             ssaaPass.enabled = _this.parameters.enable.SSAA;
         });
-        this.aa.add( this.parameters.SSAA, "unbiased").onChange(function (){
+        const ssaaGUI = this.aa.addFolder('SSAA Setting');
+        ssaaGUI.add( this.parameters.SSAA, "unbiased").onChange(function (){
             ssaaPass.unbiased = _this.parameters.SSAA.unbiased;
         }).name('Unbiased');
-        this.aa.add( this.parameters.SSAA, 'sampleLevel', {
+        ssaaGUI.add( this.parameters.SSAA, 'sampleLevel', {
             'Level 0: 1 Sample': 0,
             'Level 1: 2 Samples': 1,
             'Level 2: 4 Samples': 2,
@@ -222,21 +261,16 @@ class PostHelper {
         }).onChange(function (){
             ssaaPass.sampleLevel = _this.parameters.SSAA.sampleLevel;
         }).name('Sample Level');
-
-        const ssaaFormat = {
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter,
-            format: THREE.RGBAFormat,
-            type: THREE.FloatType
-        };
-        ssaaPass.sampleRenderTarget = new THREE.WebGLRenderTarget ( window.innerWidth, window.innerHeight, ssaaFormat);
-
-        this.passes.push( ssaaPass );
-        return ssaaPass;
+        this.guigui.SSAAx = ssaaGUI;
     }
 
-    getSSAA(){
-        return this.ssaa;
+    getSSAA() {
+        return this.passes.SSAA;
+    }
+
+    ssaaNOGUI() {
+        this.guigui.SSAA.destroy();
+        this.guigui.SSAAx.destroy();
     }
 
 
@@ -250,7 +284,7 @@ class PostHelper {
             this.parameters.BLOOM.radius,
             this.parameters.BLOOM.threshold);
         bloomPass.enabled = this.parameters.enable.BLOOM;
-        this.passes.push( bloomPass );
+        this.passes.BLOOM = bloomPass;
         this.bloomGUI( bloomPass );
         return bloomPass;
     }
@@ -270,6 +304,11 @@ class PostHelper {
         bloomGUI.add( this.parameters.BLOOM, 'threshold', 0.5, 1, 0.001).name('Threshold').onChange(function (value){
             bloomPass.threshold = value;
         });
+        this.guigui.BLOOM = bloomGUI;
+    }
+
+    bloomNOGUI() {
+        this.guigui.BLOOM.destroy();
     }
 
     initSharp() {
@@ -277,7 +316,7 @@ class PostHelper {
         sharpPass.uniforms.width.value = window.innerWidth;
         sharpPass.uniforms.height.value = window.innerHeight;
         sharpPass.enabled = this.parameters.enable.SHARP;
-        this.passes.push( sharpPass );
+        this.passes.SHARP = sharpPass;
         this.sharpGUI( sharpPass );
         return sharpPass;
     }
@@ -291,6 +330,11 @@ class PostHelper {
         sharpGUI.add( this.parameters.SHARP, 'intensity', 0, 1).name('Intensity').onChange(function (value){
             sharpPass.uniforms[ 'amount' ].value = value
         })
+        this.guigui.SHARP = sharpGUI;
+    }
+
+    sharpNOGUI() {
+        this.guigui.SHARP.destroy();
     }
 }
 

@@ -11,8 +11,9 @@ class CameraHelper {
         this.canvas = canvas;
         this.parameters = parameters
         this.gui = gui.addFolder('Camera Setting').close();
-        this.camera = this.initCamera( parameters );
-        this.control = this.initControl();
+        this.camera = this.initCamera( parameters.camera );
+        this.control = this.initControl( parameters.camera.lookAt );
+        this.logCamera( this.parameters, this.camera, this.control )
         this.menu = null;
 
         this.cameraGUI();
@@ -20,15 +21,19 @@ class CameraHelper {
 
     initCamera( parameters ) {
         const camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 1, 1000 );
-        camera.position.set( parameters.camera.position.x, parameters.camera.position.y, parameters.camera.position.z );
-        camera.rotation.set( parameters.camera.rotation.x, parameters.camera.rotation.y, parameters.camera.rotation.z )
+        camera.position.set( parameters.position.x, parameters.position.y, parameters.position.z );
+        camera.rotation.set( parameters.rotation.x, parameters.rotation.y, parameters.rotation.z )
         camera.lookAt( 0, -1.5 ,0 );
-        this.logCamera( parameters, camera );
+        camera.setFocalLength( parameters.focalLength );
         return camera;
     }
 
     getCamera(){
         return this.camera
+    }
+
+    getControl(){
+        return this.control
     }
 
     cameraGUI() {
@@ -44,34 +49,33 @@ class CameraHelper {
         }).name('Focal Length');
         this.gui.add( _attr, 'Save');
         this.gui.add( _attr, 'Reset');
+        this.lookAtGUI = this.cameraLookAt( this.parameters.camera.lookAt );
 
         function logInfo() {
-            _this.cameraLog( _this.camera, _this.parameters );
+            _this.cameraLog( _this.camera, _this.parameters, _this.control );
             _this.control.saveState();
         }
 
         function resetCamera() {
             _this.control.reset();
+            _this.camera.lookAt( _this.control.target.x, _this.control.target.y, _this.control.target.z );
+            _this.lookAtGUI.destroy();
+            _this.parameters.camera.lookAt.x =  _this.control.target.x;
+            _this.parameters.camera.lookAt.y =  _this.control.target.y;
+            _this.parameters.camera.lookAt.z =  _this.control.target.z;
+            _this.lookAtGUI = _this.cameraLookAt( _this.parameters.camera.lookAt );
             _this.control.update();
         }
     }
 
-    cameraLog( camera, parameters ) {
-        console.log('### Camera Settings\n' +
-            'Position --- ' +
-            'x: ' + camera.position.x + '; ' +
-            'y: ' + camera.position.y + '; ' +
-            'z: ' + camera.position.z + '; ' + '\n' +
-            'Rotation --- ' +
-            'x: ' + camera.rotation.x + '; ' +
-            'y: ' + camera.rotation.y + '; ' +
-            'z: ' + camera.rotation.z + '; ' + '\n'
-        )
-        console.log(camera);
-        this.logCamera( parameters, camera )
+    cameraLog( camera, parameters, control ) {
+        console.log( camera.position );
+        console.log( camera.rotation );
+        console.log( control.target );
+        this.logCamera( parameters, camera, control )
     }
 
-    logCamera( parameters, camera ) {
+    logCamera( parameters, camera, control ) {
         parameters.camera = {
             position: {
                 x: camera.position.x,
@@ -83,16 +87,21 @@ class CameraHelper {
                 y: camera.rotation.y,
                 z: camera.rotation.z,
             },
+            lookAt: {
+                x: control.target.x,
+                y: control.target.y,
+                z: control.target.z
+            },
             focalLength: camera.getFocalLength()
         };
     }
 
-    initControl() {
+    initControl( parameters ) {
         let control = new OrbitControls( this.camera, this.canvas );
-        control.target = new Vector3( 0, -1.5, 0);
+        control.target = new Vector3( parameters.x, parameters.y, parameters.z );
         control.update();
         control.saveState();
-        // control.enableDamping = true;
+        control.enableDamping = true;
         control.rotateSpeed = SPEED*1000;
         control.maxDistance = 100;
         control.touches = {
@@ -100,6 +109,27 @@ class CameraHelper {
             TWO: THREE.TOUCH.DOLLY_PAN
         }
         return control
+    }
+
+    cameraLookAt( parameters ) {
+        const _this = this;
+        const lookAtGUI = this.gui.addFolder('Look At Point');
+        lookAtGUI.add( parameters, 'x', -5, 5).onChange(function (value){
+            _this.camera.lookAt( value, parameters.y, parameters.z );
+            _this.control.target = new Vector3( value, parameters.y, parameters.z );
+            _this.control.update();
+        });
+        lookAtGUI.add( parameters, 'y', -5, 5).onChange(function (value){
+            _this.camera.lookAt( parameters.x, value, parameters.z );
+            _this.control.target = new Vector3( parameters.x, value, parameters.z );
+            _this.control.update();
+        });
+        lookAtGUI.add( parameters, 'z', -5, 5).onChange(function (value){
+            _this.camera.lookAt( parameters.x, parameters.y, value );
+            _this.control.target = new Vector3( parameters.x, parameters.y, value );
+            _this.control.update();
+        });
+        return lookAtGUI;
     }
 
     enableToggle() {

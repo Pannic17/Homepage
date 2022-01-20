@@ -63,6 +63,7 @@ const PRESET = {
     modelPath: '/model/owl_gltf/1.gltf',
     hdrPath: '/hdr/xmas.hdr',
     bgPath: null,
+    rotation: 0,
     hdrAngle: 0,
     autoPlay: false,
     ambientIntensity: 0.2,
@@ -81,7 +82,7 @@ const PRESET = {
             "FXAA": false,
             "SMAA": false,
             "SSAA": true,
-            "SHARP": false,
+            "SHARP": true,
         },
         "SSAA": {
             "sampleLevel": 3,
@@ -121,15 +122,20 @@ const PRESET = {
             "y": 0,
             "z": 0
         },
+        "lookAt": {
+            "x": 0,
+            "y": -1.5,
+            "z": 0
+        },
         "focalLength": 45
     }
 }
 
 // Global Variables
-let scene, camera, renderer, canvas;
+let scene, renderer, canvas;
 let gui, stats;
 let object, model;
-let lights, control;
+let lights, control, complex, camera;
 let ambient, background, pmrem, hdr;
 let composer;
 
@@ -158,8 +164,9 @@ export default {
 
             // addPlane( scene );
             // addTestObjects( scene );
-            control = new CameraHelper( scene, canvas, gui, parameters );
-            camera = control.getCamera()
+            complex = new CameraHelper( scene, canvas, gui, parameters );
+            camera = complex.getCamera();
+            control = complex.getControl();
             lights = new LightHelper( scene, gui, parameters );
 
             initPost( parameters );
@@ -224,7 +231,7 @@ export default {
                                         object.add( child );
                                     }
                                 })
-                                object.rotation.y = 180 * Math.PI / 180;
+                                object.rotation.y = (parameters.rotation + 180) * Math.PI / 180;
                                 scene.add(object);
                                 roughnessMipmapper.dispose();
                                 console.log('Fully Loaded');
@@ -241,6 +248,9 @@ export default {
             function animate() {
                 if ( parameters.autoPlay ){
                     object.rotation.y += 0.01;
+                    let degree = (object.rotation.y * 180 / Math.PI) % 360 - 180;
+                    parameters.rotation = degree;
+                    // console.log(degree)
                 }
                 if ( parameters.enablePostprocessing ){
                     composer.render();
@@ -287,15 +297,30 @@ export default {
          */
         function initGUI( parameters ) {
             gui = new GUI();
-            let save = { 'setting': saveSetting }
+            let button = {
+                'setting': saveSetting,
+                'reset': resetObject,
+                'rotation': parameters.rotation
+            }
             function saveSetting() {
-                control.logCamera( parameters, camera );
+                complex.logCamera( parameters, camera, control );
+                button.rotation = parameters.rotation;
                 save2JSON( parameters );
+            }
+            function resetObject() {
+                parameters.rotation = button.rotation;
+                object.rotation.y = (button.rotation + 180) * Math.PI / 180;
             }
 
             const controlGUI = gui.addFolder('Control');
             controlGUI.add( parameters, 'autoPlay').name('Auto Play');
-            controlGUI.add( save, 'setting').name('Save Settings');
+            controlGUI.add( parameters, 'rotation', -180, 180).name('Y-Axis Rotation').onChange(
+                function (value) {
+                    object.rotation.y = value * Math.PI / 180;
+                }
+            ).listen();
+            controlGUI.add( button, 'setting').name('Save Settings');
+            controlGUI.add( button, 'reset').name('Reset Object');
             controlGUI.add( parameters, 'hdrAngle', -360, 360).name('HDR Angle').onChange(
                 function (value) {
                     let radians = value * Math.PI / 180
@@ -367,7 +392,7 @@ export default {
          */
         async function getJSON(){
             let data;
-            await axios.get('./2.json').then(
+            await axios.get('./test.json').then(
                 ( res ) =>{
                     data = res.data;
                     },
