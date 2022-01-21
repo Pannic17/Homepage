@@ -90,6 +90,11 @@ const routes = [
         component: () => import('../pages/Viewer/ThreeViewer.vue')
     },
     {
+        path: '/buffer',
+        name: 'buffer',
+        component: () => import('../pages/Viewer/Buffer.vue')
+    },
+    {
         path: '/css',
         name: 'Css',
         component: () => import('../pages/project/Css.vue'),

@@ -47,7 +47,7 @@
             "surfDist": 0.001
         },
         "SHARP": {
-            "intensity": 0.1
+            "intensity": 0.05
         }
     },
     "camera": {

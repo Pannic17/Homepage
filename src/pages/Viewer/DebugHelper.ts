@@ -25,7 +25,7 @@ export function addTestObjects( scene: any ) {
         roughness: 0.5
     });
     const boxMesh = new THREE.Mesh( boxGeometry, boxMaterial );
-    boxMesh.position.set( -3, 3, - 3 );
+    boxMesh.position.set( 0, 0, 0 );
     scene.add( boxMesh );
     const sphereGeometry = new THREE.IcosahedronBufferGeometry( 2, 4 );
     const sphereMaterial = new THREE.MeshStandardMaterial( {
@@ -34,6 +34,6 @@ export function addTestObjects( scene: any ) {
         roughness: 1
     });
     const sphereMesh = new THREE.Mesh( sphereGeometry, sphereMaterial );
-    sphereMesh.position.set( 3, 3, - 3 );
+    sphereMesh.position.set( 0, 0, 0 );
     scene.add( sphereMesh );
 }

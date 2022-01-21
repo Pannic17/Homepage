@@ -45,7 +45,6 @@ class LightHelper {
     }
 
 
-
     addLight( lightType, parameters ) {
         switch ( lightType ) {
             case LightHelper.LIGHT.None:
@@ -81,6 +80,10 @@ class LightHelper {
         this.scene.remove( light );
         light.dispose();
         gui.destroy();
+    }
+
+    removeGUI() {
+        this.gui.destroy();
     }
 
     lightShadow( light ) {
