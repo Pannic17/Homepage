@@ -15,7 +15,7 @@ import {PostHelper} from "./PostHelper";
 import {ShaderPass} from "three/examples/jsm/postprocessing/ShaderPass";
 import {GammaCorrectionShader} from "three/examples/jsm/shaders/GammaCorrectionShader";
 
-let scene, renderer, camera, composer;
+let renderer, composer, scene, camera, canvas, gui;
 
 class ThreeHelper {
     constructor( parameters, state) {
@@ -24,7 +24,6 @@ class ThreeHelper {
         if (this.isMobile ()) {
             gui.close ();
         }
-        this.state = state
     }
 
 
@@ -35,43 +34,40 @@ class ThreeHelper {
             console.log('Use Preset')
             parameters = PRESET;
         }
-        renderer = initRenderer();
-        this.renderer = renderer
-        this.canvas = initCanvas(this.renderer);
+        this.renderer = renderer = initRenderer();
+        this.canvas = canvas = initCanvas( renderer );
         this.stats = initStats();
-        this.canvas.appendChild( this.stats.dom );
-        scene = initScene();
-        console.log(scene);
-        this.scene = scene
+        canvas.appendChild( this.stats.dom );
+        this.scene = scene = initScene();
+        console.log( scene );
         this.ambient = initAmbient( parameters );
-        this.scene.add( this.ambient );
-        initShadow( this.renderer );
+        scene.add( this.ambient );
+        initShadow( renderer );
         this.initGUI( parameters );
 
         // addPlane( scene );
         // addTestObjects( scene );
-        this.complex = new CameraHelper( this.scene, this.canvas, this.gui, parameters );
-        camera = this.complex.getCamera();
-        this.camera = camera
+        this.complex = new CameraHelper( scene, canvas, gui, parameters );
+        this.camera = camera = this.complex.getCamera();
         this.control = this.complex.getControl();
-        this.lights = new LightHelper( this.scene, this.gui, parameters );
+        this.lights = new LightHelper( scene, gui, parameters );
 
         this.initPost( parameters );
 
         console.log('Scene Loaded')
 
-        this.pmrem = new PMREMGenerator( this.renderer );
+        this.pmrem = new PMREMGenerator( renderer );
 
         new RGBELoader()
             .load( parameters.hdrPath, function ( texture ) {
                 // texture.mapping = THREE.EquirectangularReflectionMapping;
                 _this.hdr = texture;
                 let hdrTexture = _this.pmrem.fromEquirectangular(texture, parameters.hdrAngle ).texture
-                _this.scene.environment = hdrTexture;
+                scene.environment = hdrTexture;
                 // scene.background = hdrTexture;
-                _this.scene.fog = new THREE.Fog(0xaaaaaa, 200, 1000);
+                scene.fog = new THREE.Fog(0xaaaaaa, 200, 1000);
                 _this.pmrem.compileEquirectangularShader();
-                const roughnessMipmapper = new RoughnessMipmapper( _this.renderer );
+                const roughnessMipmapper = new RoughnessMipmapper( renderer );
                 const backgroundLoader = new THREE.TextureLoader();
                 /**
                  * @function Background in Canvas
@@ -141,12 +137,12 @@ class ThreeHelper {
             }
             if ( parameters.enablePostprocessing ){
                 // console.log(_this.composer)
-                _this.composer.render();
+                composer.render();
             } else {
-                _this.renderer.render( _this.scene, _this.camera );
+                renderer.render( scene, camera );
             }
             requestAnimationFrame(animate);
-            _this.renderer.toneMappingExposure = parameters.hdrExposure;
+            renderer.toneMappingExposure = parameters.hdrExposure;
             _this.stats.update();
         }
     }
@@ -161,32 +157,31 @@ class ThreeHelper {
         };
         const renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderSetting );
         renderTarget.texture.name = 'EffectComposer.rt1';
-        composer = new EffectComposer( _this.renderer, renderTarget );
-        this.composer = composer
+        this.composer = composer = new EffectComposer( renderer, renderTarget );
 
-        _this.renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
+        renderer.toneMapping = toneMappingOptions[ parameters.toneMapping ];
 
-        let renderPass = new RenderPass( _this.scene, _this.camera );
-        _this.composer.addPass( renderPass );
+        let renderPass = new RenderPass( scene, camera );
+        composer.addPass( renderPass );
 
-        const postprocessing = new PostHelper( _this.scene, _this.composer, _this.camera, _this.renderer, _this.gui, parameters );
+        const postprocessing = new PostHelper( scene, composer, camera, renderer, gui, parameters );
 
-        _this.composer.addPass( new ShaderPass( GammaCorrectionShader ) );
+        composer.addPass( new ShaderPass( GammaCorrectionShader ) );
         // composer.addPass( postprocessing.getFXAA() );
         // composer.addPass( postprocessing.getSSAA() );
-        _this.composer.addPass( postprocessing.getSMAA() );
+        composer.addPass( postprocessing.getSMAA() );
     }
 
     initGUI( parameters ) {
         let _this = this;
-        this.gui = new GUI();
+        this.gui = gui = new GUI();
         let button = {
             'setting': saveSetting,
             'reset': resetObject,
             'rotation': parameters.rotation
         }
         function saveSetting() {
-            _this.complex.logCamera( parameters, _this.camera, _this.control );
+            _this.complex.logCamera( parameters, camera, _this.control );
             button.rotation = parameters.rotation;
             _this.save2JSON( parameters );
         }
@@ -195,7 +190,7 @@ class ThreeHelper {
             _this.object.rotation.y = (button.rotation + 180) * Math.PI / 180;
         }
 
-        const controlGUI = _this.gui.addFolder('Control');
+        const controlGUI = gui.addFolder('Control');
         controlGUI.add( parameters, 'autoPlay').name('Auto Play');
         controlGUI.add( parameters, 'rotation', -180, 180).name('Y-Axis Rotation').onChange(
             function (value) {
@@ -208,14 +203,14 @@ class ThreeHelper {
             function (value) {
                 let radians = value * Math.PI / 180
                 let hdrTexture = _this.pmrem.fromEquirectangular( _this.hdr, radians ).texture;
-                _this.scene.environment = hdrTexture;
+                scene.environment = hdrTexture;
                 // scene.background = hdrTexture;
             }
         );
 
-        settingGUI( this.gui, parameters, this.renderer, this.ambient );
+        settingGUI( gui, parameters, renderer, this.ambient );
 
-        _this.gui.open();
+        gui.open();
     }
 
     save2JSON( parameters ) {
