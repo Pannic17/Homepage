@@ -7,7 +7,7 @@ Mounted on Tencent Cloud
 -GUI  
 -MODEL  
   gltf loader with ORM texture and transmission  
-  enable hdr and hdr rotation  
+  enable HDR and HDR rotation  
   with adjustable default ambient light  
 -CAMERA & LIGHTS  
   camera and orbit control, available at both pc and mobile  
