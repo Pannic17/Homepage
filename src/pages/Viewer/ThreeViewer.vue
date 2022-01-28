@@ -45,6 +45,8 @@ export default {
                 arr.forEach( a=> {
                     clearAll( child, a )
                 })
+
+
             }
             if( child instanceof THREE.Mesh ){
                 if( child.material.map ) child.material.map.dispose();

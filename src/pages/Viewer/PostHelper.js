@@ -129,7 +129,7 @@ class PostHelper {
             let scale = i / (customKernelSize-32);
             scale = MathUtils.lerp( 0.1, 1, scale * scale );
             sample.multiplyScalar( scale );
-            ssaoPass.ssaoMaterial.uniforms[ 'kernel' ].value.push(sample);
+            ssaoPass.ssaoMaterial.uniforms[ 'kernel' ].value.concat( sample );
         }
         this.ssaoGUI( ssaoPass );
         this.passes.SSAO = ssaoPass;
