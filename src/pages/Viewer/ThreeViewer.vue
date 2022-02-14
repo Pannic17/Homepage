@@ -28,13 +28,18 @@ import { onMounted, onUnmounted, reactive, watch } from "vue";
 import { saveAs } from 'file-saver';
 import axios from "axios";
 import { ThreeHelper } from "./ThreeHelper";
+import { useRoute } from "vue-router";
+
 
 // Global Variables
-let three;
+let three, params;
 
 export default {
     name: "ThreeViewer",
     setup() {
+        let route = useRoute();
+        params = route.query;
+        console.log(params)
         const state = reactive({ loaded: true });
 
         function clearAll( parent, child ){
@@ -84,7 +89,12 @@ export default {
 
         onMounted(async () => {
             window.createImageBitmap = undefined; // Fix iOS Bug
-            let url = './2.json'
+            let url;
+            if (params.url) {
+                url = params.url;
+            } else  {
+                url = './2.json';
+            }
             let data = await getJSON( url );
             console.log( state.loaded );
             // initThree( data );
