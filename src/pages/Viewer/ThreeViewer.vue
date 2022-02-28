@@ -43,21 +43,18 @@ export default {
         const state = reactive({ loaded: true });
 
         function clearAll( parent, child ){
-            if( child.children === "undefined" || child.children == null){
-
-            }else if( child.children.length ){
-                let arr    = child.children.filter( x => x );
+            if( child.children === "undefined" || child.children == null ) {
+            } else if( child.children.length ){
+                let arr = child.children.filter( x => x );
                 arr.forEach( a=> {
                     clearAll( child, a )
                 })
-
-
             }
             if( child instanceof THREE.Mesh ){
                 if( child.material.map ) child.material.map.dispose();
                 child.material.dispose();
                 child.geometry.dispose();
-            }else if( child.material ){
+            } else if( child.material ){
                 child.material.dispose();
             }
             child.remove();
