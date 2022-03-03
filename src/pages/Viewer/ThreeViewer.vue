@@ -2,7 +2,7 @@
     <body>
         <div id="three-canvas"></div>
         <!--suppress HtmlUnknownTarget -->
-        <img class="background" src="/image/shooting_star.jpg" alt="" />
+        <img class="background" :src="state.background" alt="" />
         <div class="loading" v-if="state.loaded">
             <div class="rect1"></div>
             <div class="rect2"></div>
@@ -29,32 +29,44 @@ import { saveAs } from 'file-saver';
 import axios from "axios";
 import { ThreeHelper } from "./ThreeHelper";
 import { useRoute } from "vue-router";
+import { PRESET } from "./ThreeHelper";
 
 
 // Global Variables
-let three, params;
+let three, params, background;
 
 export default {
     name: "ThreeViewer",
+    data() {
+        return {
+            bg: background
+        }
+    },
     setup() {
         let route = useRoute();
         params = route.query;
         console.log(params)
-        const state = reactive({ loaded: true });
+        const state = reactive({
+            loaded: true,
+            background: "/image/shooting_star.jpg"
+        });
 
         function clearAll( parent, child ){
-            if( child.children === "undefined" || child.children == null ) {
-            } else if( child.children.length ){
-                let arr = child.children.filter( x => x );
+            if( child.children === "undefined" || child.children == null){
+
+            }else if( child.children.length ){
+                let arr    = child.children.filter( x => x );
                 arr.forEach( a=> {
                     clearAll( child, a )
                 })
+
+
             }
             if( child instanceof THREE.Mesh ){
                 if( child.material.map ) child.material.map.dispose();
                 child.material.dispose();
                 child.geometry.dispose();
-            } else if( child.material ){
+            }else if( child.material ){
                 child.material.dispose();
             }
             child.remove();
@@ -72,12 +84,12 @@ export default {
             await axios.get( url ).then(
                 ( res ) =>{
                     data = res.data;
-                    },
+                },
                 ( error ) => {
                     let status = ( error.response && error.response.status && error.response.status)
                     if ( status === 404 ){
                         data = null;
-                        console.log('No Such File')
+                        console.error('Url Mistake, no such file')
                     }
                 }
             )
@@ -106,6 +118,12 @@ export default {
             three.renderer.dispose();
             three.gui.destroy();
         })
+
+        function resize() {
+            document.getElementById("bg").setAttribute('style', 'width: 100%; height:100%');
+
+            three.onWindowResize();
+        }
 
         watch(
             () => state.loaded,

@@ -47,7 +47,7 @@ class CameraHelper {
             _this.camera.setFocalLength(value);
             _this.parameters.camera.focalLength = value;
         }).name('Focal Length');
-        this.gui.add( _attr, 'Save');
+        this.gui.add( _attr, 'Save').name('Log');
         this.gui.add( _attr, 'Reset');
         // this.lookAtGUI = this.cameraLookAt( this.parameters.camera.lookAt );
 

@@ -843,6 +843,10 @@ function _getCubemapShader() {
 
 }
 
+
+/**
+ * @customized Modified shader to enable HDR Y-axis rotation
+ */
 function _getCommonVertexShader() {
 
 	return /* glsl */`
@@ -856,7 +860,7 @@ function _getCommonVertexShader() {
 
 		varying vec3 vOutputDirection;
 		uniform float angle;
-		
+
 		mat3 getRotationMatrix(vec3 axis, float angle) {
 			axis = normalize(axis);
 			float s = sin(angle);

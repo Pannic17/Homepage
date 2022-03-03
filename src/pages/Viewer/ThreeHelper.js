@@ -18,8 +18,8 @@ import {GammaCorrectionShader} from "three/examples/jsm/shaders/GammaCorrectionS
 let renderer, composer, scene, camera, canvas, gui;
 
 class ThreeHelper {
-    constructor( parameters, state) {
-        this.initThree( parameters, state );
+    constructor( parameters, type, state) {
+        this.initThree( parameters, type, state );
         window.addEventListener ( 'resize', this.onWindowResize );
         if (this.isMobile ()) {
             gui.close ();
@@ -29,11 +29,9 @@ class ThreeHelper {
 
 
     initThree ( parameters, state ){
+        console.log(parameters);
+        console.log(state)
         let _this = this;
-        if ( !parameters || (parameters === {}) ){
-            console.log('Use Preset')
-            parameters = PRESET;
-        }
         this.renderer = renderer = initRenderer();
         this.canvas = canvas = initCanvas( renderer );
         this.stats = initStats();
@@ -43,7 +41,7 @@ class ThreeHelper {
         this.ambient = initAmbient( parameters );
         scene.add( this.ambient );
         initShadow( renderer );
-        this.initGUI( parameters );
+        this.initGUI( parameters, state );
 
         // addPlane( scene );
         // addTestObjects( scene );
@@ -64,6 +62,8 @@ class ThreeHelper {
                 _this.hdr = texture;
                 let hdrTexture = _this.pmrem.fromEquirectangular(texture, parameters.hdrAngle ).texture
                 scene.environment = hdrTexture;
+                console.log(parameters.hdrExposure)
+                renderer.toneMappingExposure = parameters.hdrExposure;
                 // scene.background = hdrTexture;
                 scene.fog = new THREE.Fog(0xaaaaaa, 200, 1000);
                 _this.pmrem.compileEquirectangularShader();
@@ -89,31 +89,9 @@ class ThreeHelper {
                             _this.object = new THREE.Group();
                             // let meshGUI = gui.addFolder('Meshes').close();
                             let index = 0;
-                            gltf.scene.traverse( function (child) {
-                                if (child instanceof THREE.Mesh) {
-                                    index += 1;
-                                    console.log(child.material);
-                                    roughnessMipmapper.generateMipmaps(child.material);
-                                    child.castShadow = true;
-                                    child.receiveShadow = true;
-                                    child.material.aoIntensity = 0;
-                                    child.material.aoMap = null;
-                                    /**
-                                     * @function View ARM
-                                     * DISCARD -> RECONSTRUCT
-                                     * realized in reload
-                                     parameters.maps.arm = child.material.aoMap;
-                                     let viewMaterial = new THREE.MeshPhongMaterial({
-                                            color: 0x0000ff,
-                                            map: parameters.maps.arm
-                                        })
-                                     let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
-                                     scene.add(viewMesh);
-                                     */
-                                    // const mesh = new MeshHelper( child, meshGUI, parameters, index );
-                                    _this.object.add( child );
-                                }
-                            })
+                            if (gltf.scene != undefined) {
+                                _this.loadMesh(gltf, roughnessMipmapper, index, _this);
+                            }
                             _this.object.rotation.y = (parameters.rotation + 180) * Math.PI / 180;
                             scene.add(_this.object);
                             roughnessMipmapper.dispose();
@@ -147,6 +125,34 @@ class ThreeHelper {
         }
     }
 
+    loadMesh( gltf, roughnessMipmapper, index, _this ) {
+        gltf.scene.traverse( function (child) {
+            if (child instanceof THREE.Mesh) {
+                index += 1;
+                console.log(child.material);
+                roughnessMipmapper.generateMipmaps(child.material);
+                child.castShadow = true;
+                child.receiveShadow = true;
+                child.material.aoIntensity = 0;
+                child.material.aoMap = null;
+                /**
+                 * @function View ARM
+                 * DISCARD -> RECONSTRUCT
+                 * realized in reload
+                 parameters.maps.arm = child.material.aoMap;
+                 let viewMaterial = new THREE.MeshPhongMaterial({
+                                            color: 0x0000ff,
+                                            map: parameters.maps.arm
+                                        })
+                 let viewMesh = new THREE.Mesh(child.geometry, viewMaterial);
+                 scene.add(viewMesh);
+                 */
+                // const mesh = new MeshHelper( child, meshGUI, parameters, index );
+                _this.object.add( child );
+            }
+        })
+    }
+
     initPost( parameters ) {
         let _this = this;
         const renderSetting = {
@@ -172,13 +178,16 @@ class ThreeHelper {
         composer.addPass( postprocessing.getSMAA() );
     }
 
-    initGUI( parameters ) {
-        let _this = this;
+    initGUI( parameters, state ) {
         this.gui = gui = new GUI();
+        let _this = this;
+        let original = parameters.camera;
         let button = {
             'setting': saveSetting,
             'reset': resetObject,
-            'rotation': parameters.rotation
+            'background': changeBackground,
+            'rotation': parameters.rotation,
+            'url': ''
         }
         function saveSetting() {
             _this.complex.logCamera( parameters, camera, _this.control );
@@ -188,22 +197,28 @@ class ThreeHelper {
         function resetObject() {
             parameters.rotation = button.rotation;
             _this.object.rotation.y = (button.rotation + 180) * Math.PI / 180;
+            camera.position.set( original.position.x, original.position.y, original.position.z );
+            camera.rotation.set( original.rotation.x, original.rotation.y, original.rotation.z )
+            camera.lookAt( 0, 2.5 ,0 );
+        }
+        function changeBackground() {
+            state.background = parameters.bgPath = button.url
         }
 
         const controlGUI = gui.addFolder('Control');
-        controlGUI.add( parameters, 'autoPlay').name('Auto Play');
+        controlGUI.add( parameters, 'autoPlay').name('Autoplay');
         /**
          * @function Y-Axis Rotation
          * DISCARD -> UNEXPOSED
          * do not allow user to manipulate object attributes
-        controlGUI.add( parameters, 'rotation', -180, 180).name('Y-Axis Rotation').onChange(
-            function (value) {
+         controlGUI.add( parameters, 'rotation', -180, 180).name('Y-Axis Rotation').onChange(
+         function (value) {
                 _this.object.rotation.y = ( value + 180 ) * Math.PI / 180;
             }
-        ).listen();
+         ).listen();
          */
-        controlGUI.add( button, 'setting').name('Save Settings');
-        controlGUI.add( button, 'reset').name('Reset Object');
+        controlGUI.add( button, 'setting').name('!Save Setting!');
+        controlGUI.add( button, 'reset').name('Reset');
         controlGUI.add( parameters, 'hdrAngle', -360, 360).name('HDR Angle').onChange(
             function (value) {
                 let radians = value * Math.PI / 180
@@ -212,6 +227,8 @@ class ThreeHelper {
                 // scene.background = hdrTexture;
             }
         );
+        controlGUI.add( button, 'url' ).name('Background Url')
+        controlGUI.add( button, 'background' ).name('Change Background')
 
         settingGUI( gui, parameters, renderer, this.ambient );
 
@@ -321,4 +338,4 @@ const PRESET = {
     }
 }
 
-export { ThreeHelper };
+export { ThreeHelper, PRESET };
