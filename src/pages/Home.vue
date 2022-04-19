@@ -10,7 +10,7 @@
             <a href="https://www.instagram.com/pannic17/"><img class="social" src="../assets/image/icon_ins.png" alt="Instagram"></a>
             <br/>
             苏ICP备2021057142号-1  
-            <a href="https://beian.miit.gov.cn"/></a>
+            <a href="https://beian.miit.gov.cn"></a>
         </div>
     </body>
 </template>
