@@ -9,8 +9,7 @@
             <a href="https://space.bilibili.com/26919749"><img class="social" src="../assets/image/icon_bili.png" alt="Bilibili"></a>
             <a href="https://www.instagram.com/pannic17/"><img class="social" src="../assets/image/icon_ins.png" alt="Instagram"></a>
             <br/>
-            苏ICP备2021057142号-1  
-            <a href="https://beian.miit.gov.cn">工信部链接</a>
+            <a href="https://beian.miit.gov.cn">苏ICP备2021057142号-1</a>
         </div>
     </body>
 </template>
