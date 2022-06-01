@@ -81,7 +81,7 @@ var SSRShader = {
 			float nom = a2;
 			float denom = (NdotH2 * (a2 - 1.0) + 1.0);
 			denom = PI * denom * denom;
-			return nom / max(denom, 0.0000001); 
+			return nom / max(denom, 0.0000001);
 			// prevent divide by zero for roughness=0.0 and NdotH=1.0
 		}
 		// ADD--------------------------------------------------
@@ -150,7 +150,7 @@ var SSRShader = {
 			return xy;
 		}
 		void main(){
-			
+
 			float metalness=texture2D(tMetalness,vUv).b;
 			if(metalness==0.) return;
 

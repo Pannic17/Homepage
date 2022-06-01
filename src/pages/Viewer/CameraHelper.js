@@ -7,6 +7,24 @@ const SPEED = 0.001;
 class CameraHelper {
     constructor ( scene, canvas, gui, parameters ) {
         // Inputs
+        const PREVIEW = {
+            "position": {
+                "x": -9.585855251518478,
+                "y": -3.5603420578213303,
+                "z": -5.057912558330473
+            },
+            "rotation": {
+                "x": 2.7547659386080983,
+                "y": -1.052923300935789,
+                "z": 2.8014156097608947
+            },
+            "lookAt": {
+                "x": 0,
+                "y": -1.5,
+                "z": 0
+            },
+            "focalLength": 44.999999999999986
+        }
         this.scene = scene;
         this.canvas = canvas;
         this.parameters = parameters
@@ -26,6 +44,21 @@ class CameraHelper {
         camera.lookAt( 0, -1.5 ,0 );
         camera.setFocalLength( parameters.focalLength );
         return camera;
+    }
+
+    initControl( parameters ) {
+        let control = new OrbitControls( this.camera, this.canvas );
+        control.target = new Vector3( parameters.x, parameters.y, parameters.z );
+        control.update();
+        control.saveState();
+        // control.enableDamping = true;
+        control.rotateSpeed = SPEED*1000;
+        control.maxDistance = 100;
+        control.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        }
+        return control
     }
 
     getCamera(){
@@ -75,7 +108,7 @@ class CameraHelper {
         this.logCamera( parameters, camera, control )
     }
 
-    logCamera( parameters, camera, control ) {
+    logCamera(parameters, camera, control ) {
         parameters.camera = {
             position: {
                 x: camera.position.x,
@@ -94,21 +127,6 @@ class CameraHelper {
             },
             focalLength: camera.getFocalLength()
         };
-    }
-
-    initControl( parameters ) {
-        let control = new OrbitControls( this.camera, this.canvas );
-        control.target = new Vector3( parameters.x, parameters.y, parameters.z );
-        control.update();
-        control.saveState();
-        // control.enableDamping = true;
-        control.rotateSpeed = SPEED*1000;
-        control.maxDistance = 100;
-        control.touches = {
-            ONE: THREE.TOUCH.ROTATE,
-            TWO: THREE.TOUCH.DOLLY_PAN
-        }
-        return control
     }
 
     cameraLookAt( parameters ) {

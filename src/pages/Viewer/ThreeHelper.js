@@ -266,76 +266,78 @@ class ThreeHelper {
     }
 }
 
-const PRESET = {
-    modelPath: '/model/owl_gltf/1.gltf',
-    hdrPath: '/hdr/xmas.hdr',
-    bgPath: null,
-    rotation: 0,
-    hdrAngle: 0,
-    autoPlay: false,
-    ambientIntensity: 0.2,
-    hdrExposure: 1.0,
-    enablePostprocessing: true,
-    toneMapping: 'ACESFilmic',
-    maps: {
-        arm: null,
-        env: null,
-    },
-    postprocessing: {
-        "enable": {
-            "BLOOM": false,
-            "SSR": true,
-            "SSAO": true,
-            "FXAA": false,
-            "SMAA": false,
-            "SSAA": true,
-            "SHARP": true,
-        },
-        "SSAA": {
-            "sampleLevel": 3,
-            "unbiased": true
-        },
-        "BLOOM": {
-            "strength": 1.5,
-            "radius": 4,
-            "threshold": 1
-        },
-        "SSAO": {
-            "output": 0,
-            "kernelRadius": 0.75,
-            "minDistance": 0.00001,
-            "maxDistance": 0.001,
-            "contrast": 1
-        },
-        "SSR": {
-            "output": 0,
-            "thickness": 0.1,
-            "maxDistance": 1,
-            "opacity": 1,
-            "surfDist": 0.001
-        },
-        "SHARP": {
-            "intensity": 0.05
-        }
-    },
-    "camera": {
-        "position": {
-            "x": 0,
-            "y": -1,
-            "z": -15
-        },
-        "rotation": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-        },
-        "lookAt": {
-            "x": 0,
-            "y": -1.5,
-            "z": 0
-        },
-        "focalLength": 45
-    }
-}
+
+
+                    const PRESET = {
+                        modelPath: '/model/owl_gltf/1.gltf',
+                        hdrPath: '/hdr/xmas.hdr',
+                        bgPath: null,
+                        rotation: 0,
+                        hdrAngle: 0,
+                        autoPlay: false,
+                        ambientIntensity: 0.2,
+                        hdrExposure: 1.0,
+                        enablePostprocessing: true,
+                        toneMapping: 'ACESFilmic',
+                        maps: {
+                            arm: null,
+                            env: null,
+                        },
+                        postprocessing: {
+                            "enable": {
+                                "BLOOM": false,
+                                "SSR": true,
+                                "SSAO": true,
+                                "FXAA": false,
+                                "SMAA": false,
+                                "SSAA": true,
+                                "SHARP": true,
+                            },
+                            "SSAA": {
+                                "sampleLevel": 3,
+                                "unbiased": true
+                            },
+                            "BLOOM": {
+                                "strength": 1.5,
+                                "radius": 4,
+                                "threshold": 1
+                            },
+                            "SSAO": {
+                                "output": 0,
+                                "kernelRadius": 0.75,
+                                "minDistance": 0.00001,
+                                "maxDistance": 0.001,
+                                "contrast": 1
+                            },
+                            "SSR": {
+                                "output": 0,
+                                "thickness": 0.1,
+                                "maxDistance": 1,
+                                "opacity": 1,
+                                "surfDist": 0.001
+                            },
+                            "SHARP": {
+                                "intensity": 0.05
+                            }
+                        },
+                        "camera": {
+                            "position": {
+                                "x": 0,
+                                "y": -1,
+                                "z": -15
+                            },
+                            "rotation": {
+                                "x": 0,
+                                "y": 0,
+                                "z": 0
+                            },
+                            "lookAt": {
+                                "x": 0,
+                                "y": -1.5,
+                                "z": 0
+                            },
+                            "focalLength": 45
+                        }
+                    }
 
 export { ThreeHelper, PRESET };
