@@ -29,7 +29,7 @@ class PostHelper {
         this.aa = this.gui.addFolder('Anti-Aliasing');
         this.initFXAA();
         this.initSMAA();
-        this.composer.addPass( this.initSSAA() );
+        // this.composer.addPass( this.initSSAA() );
         this.composer.addPass( this.initBloom() );
         this.composer.addPass( this.initSSAO() );
         this.composer.addPass( this.initSSR() );
@@ -119,6 +119,7 @@ class PostHelper {
         ssaoPass.ssaoMaterial.defines[ 'KERNEL_SIZE' ] = customKernelSize;
         ssaoPass.kernelSize = customKernelSize;
 
+
         // Override Internal Kernel
         for ( let i = 0; i < (customKernelSize-32); i ++ ) {
             const sample = new Vector3();
@@ -131,6 +132,7 @@ class PostHelper {
             sample.multiplyScalar( scale );
             ssaoPass.ssaoMaterial.uniforms[ 'kernel' ].value.concat( sample );
         }
+        console.log(ssaoPass.ssaoMaterial.uniforms[ 'kernel' ].value)
         this.ssaoGUI( ssaoPass );
         this.passes.SSAO = ssaoPass;
         return ssaoPass;

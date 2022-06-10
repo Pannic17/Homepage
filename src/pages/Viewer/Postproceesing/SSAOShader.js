@@ -170,12 +170,12 @@ const SSAOShader = {
 			}
 
 			occlusion = clamp( occlusion / float( KERNEL_SIZE ), 0.0, 1.0 );
-			
+
 			float adjust = clamp((((1.0 - occlusion) - 1.0) * contrast + 1.0), 0.0, 1.0);
 
 			gl_FragColor = vec4( vec3( adjust ), 1.0 );
-			
-			
+
+
 		}`
 
 };
