@@ -13,13 +13,6 @@
         <div class="overlay" v-if="state.loaded"></div>
     </body>
 </template>
-
-<script setup>
-
-
-</script>
-
-
 <script>
 // Vue
 import * as THREE from 'three/';

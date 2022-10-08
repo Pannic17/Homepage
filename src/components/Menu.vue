@@ -1,6 +1,7 @@
 <template>
     <p><a @click="switchLanguage" class="language"><u>{{ $t("menu.language")}}</u></a></p>
     <p><router-link to="about" class="link">{{ $t("menu.about") }}</router-link></p>
+    <p><router-link to="course" class="link">{{ $t("menu.course") }}</router-link></p>
     <p><router-link to="game" class="link">{{ $t("menu.game") }}</router-link></p>
     <p><router-link to="project" class="link">{{ $t("menu.project") }}</router-link></p>
     <p><router-link to="artwork" class="link">{{ $t("menu.artwork") }}</router-link></p>

@@ -8,11 +8,12 @@
   },
   "dependencies": {
     "@sketchfab/viewer-api": "^1.10.4",
-    "FileSaver": "0.10.0",
     "axios": "0.25.0",
     "blob": "^0.1.0",
     "file-saver": "^2.0.5",
+    "FileSaver": "0.10.0",
     "postprocessing": "^6.23.2",
+    "rollup-plugin-external-globals": "^0.6.1",
     "sass": "^1.43.4",
     "sass-loader": "^12.3.0",
     "three": "0.136.0",

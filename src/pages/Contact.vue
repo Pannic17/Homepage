@@ -1,7 +1,7 @@
 <template>
 
     <Header></Header>
-
+    <Menu></Menu>
 
     <p>
         <a href="mailto:pannic1984@outlook.com">pannic1984@outlook.com</a>
@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import Header from "../components/Header.vue";
+import Menu from "../components/Menu.vue";
 </script>
 
 <script lang="ts">

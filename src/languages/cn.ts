@@ -4,6 +4,7 @@ export default {
     },
     "menu":{
         "about": "关于",
+        "course": "课程",
         "game": "展示与设计",
         "project": "程序项目",
         "artwork": "媒体艺术",

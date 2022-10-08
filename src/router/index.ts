@@ -113,6 +113,12 @@ const routes = [
         name: 'Contact',
         title: 'Contact',
         component: () => import('../pages/Contact.vue')
+    },
+    {
+        path: '/course',
+        name: 'Course',
+        title: 'Course',
+        component: () => import('../pages/Course.vue')
     }
 ]
 

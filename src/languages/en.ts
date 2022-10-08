@@ -4,6 +4,7 @@ export default {
     },
     "menu":{
         "about": "About",
+        "course": "Course Work",
         "game": "Demo & Designs",
         "project": "Projects",
         "artwork": "Artworks",
